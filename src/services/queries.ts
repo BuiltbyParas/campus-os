@@ -8,7 +8,7 @@ import {
 } from './academics'
 import { getEvent, listEvents, listNotifications, type EventFilters } from './campus'
 import { getComplaint, listComplaints, type ComplaintFilters } from './complaints'
-import { listDeadlines } from './signals'
+import { listAnnouncements, listDeadlines } from './signals'
 
 /** One place to see every cache key in the app. */
 export const keys = {
@@ -22,6 +22,7 @@ export const keys = {
   event: (id: string) => ['event', id] as const,
   notifications: ['notifications'] as const,
   deadlines: ['deadlines'] as const,
+  announcements: ['announcements'] as const,
 }
 
 export function useStudent() {
@@ -66,6 +67,10 @@ export function useNotifications() {
 
 export function useDeadlines() {
   return useQuery({ queryKey: keys.deadlines, queryFn: listDeadlines })
+}
+
+export function useAnnouncements() {
+  return useQuery({ queryKey: keys.announcements, queryFn: listAnnouncements })
 }
 
 /**

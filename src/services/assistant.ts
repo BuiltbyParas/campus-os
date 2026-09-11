@@ -1,4 +1,11 @@
-import { courseById, courses, stageLabel, weekdayLabel, weekdayShort } from '@/data'
+import {
+  courseById,
+  courses,
+  stageLabel,
+  toLocalIsoDate,
+  weekdayLabel,
+  weekdayShort,
+} from '@/data'
 import { classesCanMiss, classesMustAttend, percentage } from '@/lib/attendance'
 import { formatDateLabel, formatTime, uid } from '@/lib/utils'
 import type {
@@ -410,7 +417,7 @@ function answerDeadlines(
     }
   }
 
-  const today = at.toISOString().slice(0, 10)
+  const today = toLocalIsoDate(at)
   const next = pending[0]
   const course = courseById.get(next.courseId)
   const dueToday = next.date === today
@@ -441,7 +448,7 @@ function answerDay(
 ): Omit<ChatMessage, 'id' | 'role'> {
   const today = weekdayFromDate(at)
   const todaySessions = today ? sessionsForDay(sessions, today) : []
-  const isoToday = at.toISOString().slice(0, 10)
+  const isoToday = toLocalIsoDate(at)
   const dueToday = deadlines.filter(
     (deadline) => deadline.date === isoToday && !deadline.submitted,
   )

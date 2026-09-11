@@ -180,7 +180,7 @@ export function CommandPalette({
                   setQuery(event.target.value)
                   setActive(0)
                 }}
-                placeholder="Search your campus — try “DBMS” or “complaint”"
+                placeholder="What do you need?"
                 autoComplete="off"
                 spellCheck={false}
                 className="h-14 min-w-0 flex-1 bg-transparent text-[15px] text-ink placeholder:text-ink-subtle focus:outline-none"

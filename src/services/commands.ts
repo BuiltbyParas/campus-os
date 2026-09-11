@@ -174,6 +174,53 @@ export function buildCommandIndex({
 }
 
 /**
+ * Natural-language shortcuts.
+ *
+ * A command centre that only matches nouns forces the student to already know
+ * the app's vocabulary. These map the handful of phrasings people actually type
+ * onto the assistant, which can answer them from real records — so a question
+ * typed into the palette is never a dead end.
+ */
+const QUESTION_PATTERNS: { test: RegExp; title: string; question: string }[] = [
+  {
+    test: /\b(tomorrow|next day)\b/,
+    title: 'What do I have tomorrow?',
+    question: 'What does my day look like tomorrow?',
+  },
+  {
+    test: /\b(today|right now|now)\b/,
+    title: 'What does my day look like?',
+    question: 'What does my day look like?',
+  },
+  {
+    test: /\b(skip|miss|bunk)\b/,
+    title: 'Can I skip a class?',
+    question: 'Can I skip my next class?',
+  },
+  {
+    test: /\b(due|deadline|submit|assignment)\b/,
+    title: 'What coursework is due?',
+    question: 'What coursework is due?',
+  },
+  {
+    test: /\b(attendance|percentage|short)\b/,
+    title: 'How is my attendance?',
+    question: 'How is my attendance looking?',
+  },
+]
+
+function questionCommands(query: string): CommandItem[] {
+  const text = query.toLowerCase()
+  return QUESTION_PATTERNS.filter((pattern) => pattern.test.test(text)).map((pattern) => ({
+    id: `cmd_q_${pattern.title}`,
+    kind: 'assistant' as const,
+    title: pattern.title,
+    subtitle: 'Answered from your records',
+    to: `/app/assistant?q=${encodeURIComponent(pattern.question)}`,
+  }))
+}
+
+/**
  * Ranks the index against a query.
  *
  * A title match always outranks a keyword match, so typing "attendance" leads
@@ -185,6 +232,10 @@ export function searchCommands(items: CommandItem[], query: string): CommandItem
     // The resting state shows what you can *do*, not the whole index.
     return items.filter((item) => item.kind === 'action' || item.kind === 'navigation').slice(0, 7)
   }
+
+  /* A recognised question outranks everything: someone who typed a sentence
+     wants an answer, not a page. */
+  const questions = questionCommands(trimmed)
 
   const scored = items
     .map((item) => {
@@ -206,5 +257,8 @@ export function searchCommands(items: CommandItem[], query: string): CommandItem
     .filter((entry) => entry.score > 0)
     .sort((a, b) => b.score - a.score)
 
-  return scored.slice(0, 10).map((entry) => entry.item)
+  const matched = scored.map((entry) => entry.item)
+  const seen = new Set(questions.map((item) => item.id))
+
+  return [...questions, ...matched.filter((item) => !seen.has(item.id))].slice(0, 10)
 }

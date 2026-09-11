@@ -1,17 +1,22 @@
 import { useState } from 'react'
 
+import { NowNext } from '@/components/app/NowNext'
 import { SessionRow } from '@/components/app/SessionRow'
 import { PageContainer, PageHeader } from '@/components/layout/PageContainer'
 import { Skeleton, SkeletonRows } from '@/components/ui/Skeleton'
 import { ErrorState } from '@/components/ui/States'
 import { courseById, weekdayLabel, weekdays, weekdayShort } from '@/data'
+import { buildDayAgenda } from '@/lib/agenda'
 import { cn, formatTime } from '@/lib/utils'
 import { findNextSession, sessionsForDay, weekdayFromDate, withStatus } from '@/services/academics'
-import { useTimetable } from '@/services/queries'
+import { useDeadlines, useEvents, useTimetable } from '@/services/queries'
+import { toLocalIsoDate } from '@/data'
 import type { Weekday } from '@/types'
 
 export default function Timetable() {
   const timetable = useTimetable()
+  const deadlines = useDeadlines()
+  const events = useEvents()
 
   const now = new Date()
   const today = weekdayFromDate(now)
@@ -24,12 +29,55 @@ export default function Timetable() {
      schedule is shown, not just the one currently running. */
   const next = findNextSession(sessions, now)
 
+  /* Today's merged agenda drives the Now / Next band, so the timetable opens on
+     "where do I have to be" rather than on a grid the student has to read. */
+  const todayAgenda = today
+    ? buildDayAgenda({
+        sessions: sessionsForDay(sessions, today),
+        deadlines: deadlines.data ?? [],
+        events: events.data ?? [],
+        isoDate: toLocalIsoDate(now),
+        at: now,
+      })
+    : []
+  const currentItem = todayAgenda.find((item) => item.status === 'now')
+  const nextItem = todayAgenda.find((item) => item.status === 'next')
+  const laterItems = todayAgenda.filter(
+    (item) => item.status === 'upcoming' && item.kind !== 'gap',
+  )
+
   return (
     <PageContainer className="space-y-6">
       <PageHeader
         title="Timetable"
         description="Your weekly schedule. The class running now is highlighted."
       />
+
+      {/* -------------------------------------------------- now / next / later */}
+      {!timetable.isPending && !timetable.isError && today ? (
+        <div className="space-y-3">
+          <NowNext now={currentItem} next={nextItem} />
+
+          {laterItems.length > 0 ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[12px] font-medium uppercase tracking-[0.12em] text-ink-subtle">
+                Later
+              </span>
+              {laterItems.map((item) => (
+                <span
+                  key={item.id}
+                  className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-[12.5px] text-ink-muted"
+                >
+                  <span className="tabular-nums text-ink-subtle">
+                    {formatTime(item.startTime)}
+                  </span>
+                  <span className="truncate text-ink">{item.title}</span>
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       {/* --------------------------------------------------------- day picker */}
       <div

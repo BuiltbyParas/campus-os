@@ -1,6 +1,7 @@
 import { Sparkles, TrendingDown } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
+import { AttendanceProjection } from '@/components/app/AttendanceProjection'
 import { AttendanceRow } from '@/components/app/AttendanceRow'
 import { PageContainer, PageHeader } from '@/components/layout/PageContainer'
 import { DemoNote, DemoTag } from '@/components/ui/DemoTag'
@@ -125,6 +126,9 @@ export default function Attendance() {
               </div>
             </section>
           ) : null}
+
+          {/* ----------------------------------------------------- projection */}
+          <AttendanceProjection summary={summary} />
 
           {/* -------------------------------------------------------- courses */}
           <section>

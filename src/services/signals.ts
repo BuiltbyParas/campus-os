@@ -1,13 +1,22 @@
-import { courseById, deadlineKindLabel, deadlines as demoDeadlines } from '@/data'
+import {
+  toLocalIsoDate,
+  announcements as demoAnnouncements,
+  courseById,
+  deadlineKindLabel,
+  deadlines as demoDeadlines,
+  type Announcement,
+} from '@/data'
 import { countdown, toMinutes } from '@/lib/agenda'
 import { formatTime } from '@/lib/utils'
 import type {
   AttendanceSummary,
+  CampusEvent,
   ClassSession,
   Complaint,
   Deadline,
   Insight,
   Signal,
+  SignalTone,
   Weekday,
 } from '@/types'
 
@@ -30,6 +39,10 @@ export function listDeadlines(): Promise<Deadline[]> {
   return request('/deadlines', () => demoDeadlines)
 }
 
+export function listAnnouncements(): Promise<Announcement[]> {
+  return request('/announcements', () => demoAnnouncements)
+}
+
 /** Minutes between now and a time-of-day on a given ISO date. */
 function minutesUntilOn(isoDate: string, time: string, at: Date) {
   const [hours, minutes] = time.split(':').map(Number)
@@ -38,9 +51,8 @@ function minutesUntilOn(isoDate: string, time: string, at: Date) {
   return (target.getTime() - at.getTime()) / 60_000
 }
 
-function isoDate(date: Date) {
-  return date.toISOString().slice(0, 10)
-}
+/** Local calendar date — see `toLocalIsoDate` for why UTC cannot be used. */
+const isoDate = toLocalIsoDate
 
 export function buildSignals({
   attendance,
@@ -250,4 +262,186 @@ export function buildInsights({
   }
 
   return insights
+}
+
+
+/* --------------------------------------------------------- smart actions */
+
+export interface SmartAction {
+  id: string
+  label: string
+  hint?: string
+  to: string
+  /** Higher sorts first. Context decides what a student is likely to want. */
+  weight: number
+}
+
+/**
+ * Actions that change with the situation.
+ *
+ * A fixed row of shortcuts is just a menu with bigger buttons. These are ranked
+ * by what is actually true right now — a course below the threshold promotes
+ * "ask whether you can skip", a request awaiting you promotes confirming it —
+ * so the row is worth re-reading rather than becoming furniture.
+ */
+export function buildSmartActions({
+  attendance,
+  complaints,
+  deadlines,
+}: {
+  attendance?: AttendanceSummary
+  complaints: Complaint[]
+  deadlines: Deadline[]
+}): SmartAction[] {
+  const actions: SmartAction[] = []
+
+  /* The question a student with a shortfall is about to ask anyway. */
+  const worst = (attendance?.courses ?? [])
+    .filter((row) => row.status !== 'safe')
+    .sort((a, b) => a.percentage - b.percentage)[0]
+  if (worst) {
+    const course = courseById.get(worst.courseId)
+    actions.push({
+      id: 'sa_skip',
+      label: `Can I skip ${course?.short ?? 'this'}?`,
+      hint: `${Math.round(worst.percentage)}% · ask the assistant`,
+      to: `/app/assistant?q=${encodeURIComponent(`Can I skip my next ${course?.short ?? ''} class?`)}`,
+      weight: 85,
+    })
+  }
+
+  const awaiting = complaints.find((complaint) => complaint.stage === 'verification')
+  if (awaiting) {
+    actions.push({
+      id: 'sa_verify',
+      label: 'Confirm a repair',
+      hint: awaiting.reference,
+      to: `/app/complaints/${awaiting.id}`,
+      weight: 80,
+    })
+  }
+
+  const soonest = deadlines
+    .filter((deadline) => !deadline.submitted)
+    .sort((a, b) => `${a.date}${a.dueTime}`.localeCompare(`${b.date}${b.dueTime}`))[0]
+  if (soonest) {
+    const course = courseById.get(soonest.courseId)
+    actions.push({
+      id: 'sa_deadline',
+      label: 'Next deadline',
+      hint: `${course?.short ?? ''} · ${formatTime(soonest.dueTime)}`.trim(),
+      to: '/app/timetable',
+      weight: 60,
+    })
+  }
+
+  /* Always available, and always last: reporting something is the one action
+     that does not depend on anything already being true. */
+  actions.push({
+    id: 'sa_report',
+    label: 'Report an issue',
+    hint: 'Hostel, lab or facility',
+    to: '/app/complaints/new',
+    weight: 40,
+  })
+
+  return actions.sort((a, b) => b.weight - a.weight)
+}
+
+/* ----------------------------------------------------------- campus pulse */
+
+export interface PulseItem {
+  id: string
+  when: string
+  title: string
+  detail: string
+  tone: SignalTone
+  kind: 'event' | 'deadline' | 'notice'
+  action?: { label: string; to: string }
+  /** Sort key: minutes from now. */
+  order: number
+}
+
+/**
+ * Campus Pulse — what is coming up on campus, in time order.
+ *
+ * Scoped deliberately to coursework, events and campus notices. The student's
+ * own schedule is already carried by Now/Next and the timeline, and their own
+ * requests by Recent activity — including them here would put the same row on
+ * screen twice, which is how dashboards start feeling padded.
+ *
+ * Not a feed: finite, chronological, and every row is either something to
+ * prepare for or something to act on.
+ */
+export function buildPulse({
+  deadlines,
+  events,
+  notices,
+  at = new Date(),
+}: {
+  deadlines: Deadline[]
+  events: CampusEvent[]
+  notices: Announcement[]
+  at?: Date
+}): PulseItem[] {
+  const items: PulseItem[] = []
+  const today = isoDate(at)
+  const tomorrow = isoDate(new Date(at.getTime() + 86_400_000))
+
+  for (const deadline of deadlines) {
+    if (deadline.submitted) continue
+    if (deadline.date !== today && deadline.date !== tomorrow) continue
+    const course = courseById.get(deadline.courseId)
+    const minutes = minutesUntilOn(deadline.date, deadline.dueTime, at)
+    if (minutes < 0) continue
+    items.push({
+      id: `pulse_dln_${deadline.id}`,
+      when: deadline.date === today ? countdown(minutes) : 'Tomorrow',
+      title: deadline.title,
+      detail: `${course?.short ?? ''} · due ${formatTime(deadline.dueTime)}`.trim(),
+      tone: deadline.date === today ? 'danger' : 'warn',
+      kind: 'deadline',
+      order: minutes,
+    })
+  }
+
+  for (const event of events) {
+    if (event.date !== today && event.date !== tomorrow) continue
+    const minutes = minutesUntilOn(event.date, event.startTime, at)
+    if (minutes < 0) continue
+    items.push({
+      id: `pulse_evt_${event.id}`,
+      when: event.date === today ? formatTime(event.startTime) : 'Tomorrow',
+      title: event.title,
+      detail: event.venue,
+      tone: 'info',
+      kind: 'event',
+      action: { label: 'View', to: '/app/events' },
+      order: minutes,
+    })
+  }
+
+  for (const notice of notices) {
+    if (notice.date !== today && notice.date !== tomorrow) continue
+    const minutes = minutesUntilOn(notice.date, notice.startTime, at)
+    // A notice stays relevant while it is in effect, not only before it starts.
+    const endMinutes = notice.endTime
+      ? minutesUntilOn(notice.date, notice.endTime, at)
+      : minutes + 60
+    if (endMinutes < 0) continue
+
+    items.push({
+      id: `pulse_ann_${notice.id}`,
+      when: notice.date === today ? (minutes <= 0 ? 'In effect' : formatTime(notice.startTime)) : 'Tomorrow',
+      title: notice.title,
+      detail: notice.endTime
+        ? `${notice.detail} · until ${formatTime(notice.endTime)}`
+        : notice.detail,
+      tone: minutes <= 0 && endMinutes > 0 ? 'warn' : 'info',
+      kind: 'notice',
+      order: minutes,
+    })
+  }
+
+  return items.sort((a, b) => a.order - b.order)
 }

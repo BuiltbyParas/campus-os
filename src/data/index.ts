@@ -7,7 +7,7 @@
  * anything it renders as fact.
  */
 
-export { dayOffset, hoursAgo, minutesAgo, TODAY } from './_time'
+export { dayOffset, hoursAgo, minutesAgo, toLocalIsoDate, TODAY } from './_time'
 export { demoStudent } from './student'
 export { courses, courseById, courseName } from './courses'
 export { attendanceSummary, DEMO_REQUIRED_PERCENTAGE } from './attendance'
@@ -33,5 +33,6 @@ export {
 } from './complaints'
 export { events, eventById, eventCategoryLabel } from './events'
 export { deadlines, deadlineKindLabel } from './deadlines'
+export { announcements, type Announcement } from './announcements'
 export { notifications } from './notifications'
 export { assistantSuggestions } from './assistant'

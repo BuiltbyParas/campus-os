@@ -1,10 +1,13 @@
-import { ArrowUpRight, CalendarDays, MessageSquareWarning, ScanLine, Sparkles } from 'lucide-react'
+import { ArrowUpRight, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { useStore } from '@/app/store'
 import { AttendanceStrip } from '@/components/app/AttendanceStrip'
+import { CampusPulse } from '@/components/app/CampusPulse'
 import { InsightRow } from '@/components/app/InsightRow'
+import { NowNext } from '@/components/app/NowNext'
 import { SignalStack } from '@/components/app/SignalStack'
+import { SmartActions } from '@/components/app/SmartActions'
 import { TodayTimeline } from '@/components/app/TodayTimeline'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { DemoTag } from '@/components/ui/DemoTag'
@@ -12,24 +15,17 @@ import { GlassPanel } from '@/components/ui/GlassPanel'
 import { ProgressRing } from '@/components/ui/ProgressRing'
 import { Skeleton, SkeletonRows } from '@/components/ui/Skeleton'
 import { ErrorState } from '@/components/ui/States'
-import { assistantSuggestions, courseById } from '@/data'
+import { assistantSuggestions, courseById, stageShortLabel, toLocalIsoDate } from '@/data'
 import { buildDayAgenda } from '@/lib/agenda'
 import { attendanceStatusTone } from '@/lib/attendance'
-import { greeting } from '@/lib/utils'
+import { cn, formatRelative, greeting } from '@/lib/utils'
 import { sessionsForDay, weekdayFromDate, withStatus } from '@/services/academics'
-import { useCampusContext, useEvents } from '@/services/queries'
-import { buildInsights, buildSignals } from '@/services/signals'
+import { useAnnouncements, useCampusContext, useEvents } from '@/services/queries'
+import { buildInsights, buildPulse, buildSignals, buildSmartActions } from '@/services/signals'
 
 function firstName(name: string) {
   return name.split(' ')[0]
 }
-
-/** Reached for often enough to earn a permanent place. */
-const quickActions = [
-  { to: '/app/complaints/new', label: 'Report an issue', icon: MessageSquareWarning },
-  { to: '/app/attendance', label: 'Attendance', icon: ScanLine },
-  { to: '/app/timetable', label: 'Timetable', icon: CalendarDays },
-]
 
 function SectionTitle({
   children,
@@ -56,19 +52,22 @@ function SectionTitle({
 /**
  * Today.
  *
- * The screen answers one question — "what do I need right now?" — so it is
- * ordered by urgency rather than by department: what CampusOS noticed, then the
- * shape of the day, then the standing figures. Nothing here is a link to a
- * university service; everything is already the answer.
+ * Ordered by urgency, not by department. The screen reads top to bottom as:
+ * where you have to be → what needs you → the shape of your day → what CampusOS
+ * can do → what is coming → your own figures.
+ *
+ * Only the first two blocks are visually dominant. Everything below is quieter
+ * on purpose: a dashboard where eight sections shout equally is a menu.
  */
 export default function Dashboard() {
   const { student } = useStore()
   const { attendance, timetable, complaints, deadlines, isPending } = useCampusContext()
   const events = useEvents()
+  const announcements = useAnnouncements()
 
   const now = new Date()
   const today = weekdayFromDate(now)
-  const isoToday = now.toISOString().slice(0, 10)
+  const isoToday = toLocalIsoDate(now)
 
   const sessions = withStatus(timetable.data ?? [], now)
   const todaySessions = today ? sessionsForDay(sessions, today) : []
@@ -81,19 +80,26 @@ export default function Dashboard() {
     at: now,
   })
 
-  const signals = buildSignals({
+  /* Now/Next read from the same agenda as the timeline, so they cannot
+     disagree with the list directly beneath them. */
+  const currentItem = agenda.find((item) => item.status === 'now')
+  const nextItem = agenda.find((item) => item.status === 'next')
+
+  const context = {
     attendance: attendance.data,
     sessions,
     complaints: complaints.data ?? [],
     deadlines: deadlines.data ?? [],
     at: now,
-  })
+  }
 
-  const insights = buildInsights({
-    attendance: attendance.data,
-    sessions,
-    complaints: complaints.data ?? [],
+  const signals = buildSignals(context)
+  const smartActions = buildSmartActions(context)
+  const insights = buildInsights(context)
+  const pulse = buildPulse({
     deadlines: deadlines.data ?? [],
+    events: events.data ?? [],
+    notices: announcements.data ?? [],
     at: now,
   })
 
@@ -101,6 +107,8 @@ export default function Dashboard() {
   const weakest = summary
     ? [...summary.courses].sort((a, b) => a.percentage - b.percentage)[0]
     : undefined
+
+  const openRequests = (complaints.data ?? []).filter((item) => item.stage !== 'resolved')
 
   return (
     <PageContainer className="space-y-6">
@@ -114,15 +122,30 @@ export default function Dashboard() {
         </h1>
       </header>
 
-      {/* ----------------------------------------------------------- signals */}
-      {isPending ? (
-        <Skeleton className="h-[76px] w-full rounded-card" />
+      {/* --------------------------------------------------------- now / next */}
+      {timetable.isPending ? (
+        <Skeleton className="h-[196px] w-full rounded-card" />
+      ) : timetable.isError ? (
+        <ErrorState onRetry={() => timetable.refetch()} />
       ) : (
-        <SignalStack signals={signals} />
+        <NowNext now={currentItem} next={nextItem} />
       )}
 
+      {/* ------------------------------------------------------ smart actions */}
+      {!isPending ? <SmartActions actions={smartActions.slice(0, 4)} /> : null}
+
+      {/* ----------------------------------------------------------- signals */}
+      <section>
+        <SectionTitle>Needs attention</SectionTitle>
+        {isPending ? (
+          <Skeleton className="h-[76px] w-full rounded-card" />
+        ) : (
+          <SignalStack signals={signals} />
+        )}
+      </section>
+
       <div className="grid gap-5 lg:grid-cols-[1.55fr_1fr] lg:gap-6">
-        {/* --------------------------------------------------- your day */}
+        {/* --------------------------------------------------------- your day */}
         <div className="min-w-0 space-y-5 lg:space-y-6">
           {summary ? <AttendanceStrip summary={summary} className="lg:hidden" /> : null}
 
@@ -133,18 +156,106 @@ export default function Dashboard() {
             <div className="rounded-card border border-line bg-surface py-2 pr-2">
               {timetable.isPending ? (
                 <SkeletonRows className="p-4" />
-              ) : timetable.isError ? (
-                <ErrorState className="m-3" onRetry={() => timetable.refetch()} />
               ) : (
                 <TodayTimeline items={agenda} />
               )}
             </div>
           </section>
 
+          <section>
+            <SectionTitle action={{ label: 'All requests', to: '/app/complaints' }}>
+              Recent activity
+            </SectionTitle>
+            {complaints.isPending ? (
+              <div className="rounded-card border border-line bg-surface p-5">
+                <SkeletonRows count={2} />
+              </div>
+            ) : openRequests.length === 0 ? (
+              <div className="rounded-card border border-dashed border-line bg-surface/50 px-5 py-8 text-center">
+                <p className="text-[14px] font-medium text-ink">Nothing outstanding</p>
+                <p className="mt-1 text-[13px] text-ink-muted">
+                  Anything you report shows up here with its status.
+                </p>
+                <Link
+                  to="/app/complaints/new"
+                  className="mt-4 inline-flex text-[13px] font-medium text-brand-ink hover:text-ink"
+                >
+                  Report an issue
+                </Link>
+              </div>
+            ) : (
+              <ul className="divide-y divide-line overflow-hidden rounded-card border border-line bg-surface">
+                {openRequests.slice(0, 3).map((complaint) => {
+                  const last = complaint.timeline[complaint.timeline.length - 1]
+                  return (
+                    <li key={complaint.id}>
+                      <Link
+                        to={`/app/complaints/${complaint.id}`}
+                        className="group flex items-start gap-3 px-4 py-3.5 transition-colors hover:bg-surface-raised"
+                      >
+                        <span
+                          aria-hidden
+                          className={cn(
+                            'mt-1.5 size-1.5 shrink-0 rounded-full',
+                            complaint.stage === 'verification' ? 'bg-warn' : 'bg-brand',
+                          )}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[14px] font-medium text-ink">
+                            {complaint.title}
+                          </p>
+                          <p className="mt-0.5 truncate text-[12.5px] text-ink-subtle">
+                            {complaint.reference} · {stageShortLabel[complaint.stage]} ·{' '}
+                            {formatRelative(last.timestamp)}
+                          </p>
+                        </div>
+                        <ArrowUpRight
+                          className="mt-0.5 size-4 shrink-0 text-ink-subtle transition-transform group-hover:translate-x-0.5"
+                          aria-hidden
+                        />
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </section>
         </div>
 
-        {/* ------------------------------------------------------ right rail */}
+        {/* ------------------------------------------------------- right rail */}
         <div className="min-w-0 space-y-5 lg:space-y-6">
+          {/* assistant — a floating control, so it earns the glass */}
+          <GlassPanel className="rounded-card p-5">
+            <div className="flex items-center gap-2">
+              <Sparkles className="size-[18px] text-brand-ink" aria-hidden />
+              <h2 className="text-[15px] font-semibold tracking-tight text-ink">Ask CampusOS</h2>
+            </div>
+            <p className="mt-2 text-[13.5px] leading-relaxed text-ink-muted">
+              It reads your timetable, attendance and requests before answering — and shows you
+              which records it used.
+            </p>
+
+            <ul className="mt-4 space-y-2">
+              {assistantSuggestions.slice(0, 2).map((suggestion) => (
+                <li key={suggestion}>
+                  <Link
+                    to={`/app/assistant?q=${encodeURIComponent(suggestion)}`}
+                    className="press block rounded-control border border-line bg-surface/50 px-3 py-2.5 text-left text-[13px] text-ink-muted hover:border-line-strong hover:text-ink"
+                  >
+                    {suggestion}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+
+            <Link
+              to="/app/assistant"
+              className="press mt-4 inline-flex h-10 w-full items-center justify-center rounded-control bg-brand text-[14px] font-medium text-on-brand hover:bg-brand-hover"
+            >
+              Open assistant
+            </Link>
+          </GlassPanel>
+
           {/* attendance — the strip above replaces this below `lg` */}
           <section className="hidden rounded-card border border-line bg-surface p-5 lg:block">
             <div className="mb-4 flex items-center justify-between gap-3">
@@ -204,58 +315,18 @@ export default function Dashboard() {
               </>
             )}
           </section>
-
-          {/* assistant — a floating control, so it gets the glass */}
-          <GlassPanel className="rounded-card p-5">
-            <div className="flex items-center gap-2">
-              <Sparkles className="size-[18px] text-brand-ink" aria-hidden />
-              <h2 className="text-[15px] font-semibold tracking-tight text-ink">Ask CampusOS</h2>
-            </div>
-            <p className="mt-2 text-[13.5px] leading-relaxed text-ink-muted">
-              It reads your timetable, attendance and requests before answering — and shows you
-              which records it used.
-            </p>
-
-            <ul className="mt-4 space-y-2">
-              {assistantSuggestions.slice(0, 2).map((suggestion) => (
-                <li key={suggestion}>
-                  <Link
-                    to={`/app/assistant?q=${encodeURIComponent(suggestion)}`}
-                    className="press block rounded-control border border-line bg-surface/50 px-3 py-2.5 text-left text-[13px] text-ink-muted hover:border-line-strong hover:text-ink"
-                  >
-                    {suggestion}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-
-            <Link
-              to="/app/assistant"
-              className="press mt-4 inline-flex h-10 w-full items-center justify-center rounded-control bg-brand text-[14px] font-medium text-on-brand hover:bg-brand-hover"
-            >
-              Open assistant
-            </Link>
-          </GlassPanel>
-
-          <section>
-            <SectionTitle>Quick actions</SectionTitle>
-            <div className="grid grid-cols-3 gap-2.5">
-              {quickActions.map((action) => (
-                <Link
-                  key={action.label}
-                  to={action.to}
-                  className="press flex flex-col gap-2.5 rounded-tile border border-line bg-surface p-3.5 hover:border-line-strong"
-                >
-                  <action.icon className="size-[18px] text-ink-subtle" aria-hidden />
-                  <span className="text-[12.5px] font-medium leading-snug text-ink">
-                    {action.label}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </section>
         </div>
       </div>
+
+      {/* ------------------------------------------------------- campus pulse */}
+      <section>
+        <SectionTitle action={{ label: 'Events', to: '/app/events' }}>Campus pulse</SectionTitle>
+        {isPending ? (
+          <Skeleton className="h-[180px] w-full rounded-card" />
+        ) : (
+          <CampusPulse items={pulse.slice(0, 5)} />
+        )}
+      </section>
 
       {/* ---------------------------------------------------------- insights */}
       <section>
