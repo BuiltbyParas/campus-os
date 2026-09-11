@@ -1,0 +1,435 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ==========================================================================
+   CampusOS design tokens
+   Single source of truth for colour, radius, shadow and motion.
+   Edit here — never hard-code a hex value in a component.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces */
+  --canvas: oklch(0.985 0.003 265);
+  --surface: oklch(1 0 0);
+  --surface-muted: oklch(0.968 0.005 265);
+  --surface-raised: oklch(1 0 0);
+  --overlay: oklch(0.22 0.02 265 / 0.45);
+
+  /* Text */
+  --ink: oklch(0.22 0.02 265);
+  --ink-muted: oklch(0.52 0.018 265);
+  --ink-subtle: oklch(0.64 0.015 265);
+  --ink-inverse: oklch(0.99 0 0);
+
+  /* Lines */
+  --line: oklch(0.918 0.007 265);
+  --line-strong: oklch(0.86 0.01 265);
+
+  /* Brand — one strong accent, used sparingly */
+  --brand: #5b52f0;
+  --brand-hover: #4b42df;
+  --brand-soft: oklch(0.955 0.025 274);
+  --brand-border: oklch(0.885 0.055 274);
+  --brand-ink: #4a41d8;
+  --on-brand: #ffffff;
+
+  /* Status — always paired with an icon or label, never colour alone */
+  --ok: oklch(0.62 0.15 150);
+  --ok-soft: oklch(0.955 0.04 150);
+  --ok-ink: oklch(0.44 0.12 150);
+
+  --warn: oklch(0.75 0.15 75);
+  --warn-soft: oklch(0.965 0.045 80);
+  --warn-ink: oklch(0.52 0.12 65);
+
+  --danger: oklch(0.585 0.21 22);
+  --danger-soft: oklch(0.96 0.03 22);
+  --danger-ink: oklch(0.49 0.19 22);
+
+  --info: oklch(0.6 0.14 235);
+  --info-soft: oklch(0.96 0.03 235);
+  --info-ink: oklch(0.45 0.13 235);
+
+  /* The canonical dark canvas, referenced by the always-dark landing surface. */
+  --canvas-dark: #080b12;
+
+  /* Ambient glow — only meaningful on dark surfaces */
+  --glow-brand: color-mix(in oklab, var(--brand) 22%, transparent);
+  --glow-info: color-mix(in oklab, var(--info) 18%, transparent);
+  --hairline: var(--line);
+
+  /* ---------------------------------------------------------------- glass
+     The functional material. Reserved for navigation, toolbars, floating
+     controls and modals — never for ordinary content cards.
+
+     The fill is a veil of the canvas colour rather than a white or purple
+     wash, so glass stays neutral and lets whatever sits behind it tint the
+     surface. `saturate` is what makes that bleed-through read as colour
+     rather than grey; blur stays moderate so text above it never smears. */
+  --glass-veil: color-mix(in oklab, var(--canvas) 72%, transparent);
+  --glass-veil-light: color-mix(in oklab, var(--canvas) 58%, transparent);
+  --glass-edge: color-mix(in oklab, var(--ink) 12%, transparent);
+  --glass-sheen: color-mix(in oklab, var(--ink) 8%, transparent);
+  --glass-blur: 20px;
+  --glass-saturate: 1.6;
+  --glass-shadow: 0 18px 44px -20px oklch(0 0 0 / 0.35);
+
+  /* Elevation */
+  --shadow-xs: 0 1px 2px oklch(0.22 0.02 265 / 0.05);
+  --shadow-sm: 0 1px 2px oklch(0.22 0.02 265 / 0.06), 0 2px 6px oklch(0.22 0.02 265 / 0.04);
+  --shadow-md: 0 2px 4px oklch(0.22 0.02 265 / 0.05), 0 8px 20px oklch(0.22 0.02 265 / 0.07);
+  --shadow-lg: 0 4px 8px oklch(0.22 0.02 265 / 0.06), 0 18px 40px oklch(0.22 0.02 265 / 0.1);
+}
+
+/* --------------------------------------------------------------------------
+   Dark theme — the primary CampusOS surface.
+   These are the brand's canonical values; light mode is the adaptation.
+   -------------------------------------------------------------------------- */
+.dark {
+  color-scheme: dark;
+
+  --canvas: var(--canvas-dark);
+  --surface: #111621;
+  --surface-muted: #0d121b;
+  --surface-raised: #151b28;
+  --overlay: oklch(0.08 0.012 265 / 0.72);
+
+  --ink: #f5f7fa;
+  --ink-muted: #8b95a7;
+  --ink-subtle: #6b7588;
+  --ink-inverse: #080b12;
+
+  /* Borders are hairlines: present, never loud. */
+  --line: oklch(1 0 0 / 0.07);
+  --line-strong: oklch(1 0 0 / 0.13);
+
+  --brand: #6c63ff;
+  --brand-hover: #8079ff;
+  --brand-soft: oklch(0.58 0.19 274 / 0.14);
+  --brand-border: oklch(0.58 0.19 274 / 0.32);
+  --brand-ink: #aca5ff;
+  --on-brand: #ffffff;
+
+  --ok: #35d07f;
+  --ok-soft: oklch(0.75 0.17 158 / 0.14);
+  --ok-ink: #6fdfa4;
+
+  --warn: #ffb547;
+  --warn-soft: oklch(0.8 0.14 70 / 0.14);
+  --warn-ink: #ffcd85;
+
+  --danger: #ff5c5c;
+  --danger-soft: oklch(0.68 0.2 22 / 0.14);
+  --danger-ink: #ff9090;
+
+  --info: #5aa9ff;
+  --info-soft: oklch(0.72 0.14 245 / 0.14);
+  --info-ink: #96c8ff;
+
+  --shadow-xs: 0 1px 2px oklch(0 0 0 / 0.4);
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.45), 0 2px 6px oklch(0 0 0 / 0.3);
+  --shadow-md: 0 2px 4px oklch(0 0 0 / 0.45), 0 10px 26px oklch(0 0 0 / 0.4);
+  --shadow-lg: 0 4px 10px oklch(0 0 0 / 0.5), 0 24px 60px oklch(0 0 0 / 0.55);
+
+  /* On a near-black canvas the veil needs a touch more body to stay legible,
+     and the drop shadow has to be deeper to separate from the background. */
+  --glass-veil: color-mix(in oklab, var(--canvas) 76%, transparent);
+  --glass-veil-light: color-mix(in oklab, var(--canvas) 62%, transparent);
+  --glass-edge: oklch(1 0 0 / 0.09);
+  --glass-sheen: oklch(1 0 0 / 0.07);
+  --glass-shadow: 0 20px 50px -22px oklch(0 0 0 / 0.85);
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-raised: var(--surface-raised);
+  --color-overlay: var(--overlay);
+
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-subtle: var(--ink-subtle);
+  --color-ink-inverse: var(--ink-inverse);
+
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-border: var(--brand-border);
+  --color-brand-ink: var(--brand-ink);
+  --color-on-brand: var(--on-brand);
+
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-ok-ink: var(--ok-ink);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-warn-ink: var(--warn-ink);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-ink: var(--danger-ink);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-info-ink: var(--info-ink);
+
+  --radius-card: 1rem;
+  --radius-tile: 0.75rem;
+  --radius-control: 0.625rem;
+
+  --shadow-e1: var(--shadow-xs);
+  --shadow-e2: var(--shadow-sm);
+  --shadow-e3: var(--shadow-md);
+  --shadow-e4: var(--shadow-lg);
+
+  --font-sans:
+    'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  * {
+    border-color: var(--line);
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+    /* Anchored sections clear the sticky landing navbar. */
+    scroll-padding-top: 6rem;
+  }
+
+  body {
+    background-color: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: none;
+  }
+
+  /* Visible, consistent focus for keyboard users only. */
+  :focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--brand) 32%, transparent);
+    color: var(--ink);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+}
+
+@layer utilities {
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Safe-area aware padding for mobile bottom navigation. */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .h-safe-nav {
+    height: calc(4rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* ---- Glass material -------------------------------------------------
+
+     Three weights of the same material, all built from the same tokens:
+
+       .glass        default functional surface (toolbars, floating controls)
+       .glass-nav    navigation layers that sit above scrolling content and
+                     must keep text legible, so the veil is denser
+       .glass-thin   small floating chips where the content behind should
+                     read through more strongly
+
+     The inset highlight is what makes the material feel lit from above. It is
+     one pixel and low opacity on purpose: if the glass is the first thing you
+     notice, it is too strong. */
+
+  .glass,
+  .glass-nav,
+  .glass-thin {
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    border: 1px solid var(--glass-edge);
+  }
+
+  .glass {
+    background-color: var(--glass-veil);
+    box-shadow: inset 0 1px 0 0 var(--glass-sheen), var(--glass-shadow);
+  }
+
+  .glass-nav {
+    background-color: var(--glass-veil);
+    --glass-blur: 24px;
+    box-shadow: inset 0 1px 0 0 var(--glass-sheen), var(--glass-shadow);
+  }
+
+  .glass-thin {
+    background-color: var(--glass-veil-light);
+    --glass-blur: 16px;
+    box-shadow: inset 0 1px 0 0 var(--glass-sheen), var(--glass-shadow);
+  }
+
+  /* Where the material is unavailable, fall back to a solid surface rather
+     than a transparent panel with unreadable text over it. */
+  @supports not (
+    (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+  ) {
+    .glass,
+    .glass-nav,
+    .glass-thin {
+      background-color: var(--surface);
+    }
+  }
+
+  /* ---- Interaction ----------------------------------------------------- */
+
+  /* The standard press feel: a barely-there lift on hover, a slight give on
+     press. Shared by every tappable surface so the whole product responds
+     with one personality. */
+  .press {
+    transition:
+      transform 200ms var(--ease-out-soft),
+      background-color 200ms var(--ease-out-soft),
+      border-color 200ms var(--ease-out-soft),
+      box-shadow 200ms var(--ease-out-soft);
+  }
+  .press:hover {
+    transform: scale(1.01);
+  }
+  .press:active {
+    transform: scale(0.99);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .press:hover,
+    .press:active {
+      transform: none;
+    }
+  }
+
+  /* ---- Landing surface treatments ------------------------------------- */
+
+  /* Headline emphasis: a restrained top-down fade, not a rainbow. */
+  .text-gradient {
+    background: linear-gradient(
+      180deg,
+      var(--ink) 30%,
+      color-mix(in oklab, var(--ink) 82%, var(--canvas)) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .text-gradient-brand {
+    background: linear-gradient(100deg, var(--brand-ink) 0%, var(--info-ink) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* A 1px inner highlight along the top edge — the "lit glass" cue. */
+  .edge-highlight {
+    box-shadow: inset 0 1px 0 0 oklch(1 0 0 / 0.06);
+  }
+
+  /* Faint mesh used behind the hero only. */
+  .bg-mesh {
+    background-image:
+      linear-gradient(to right, oklch(1 0 0 / 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, oklch(1 0 0 / 0.03) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+
+  .mask-fade-b {
+    -webkit-mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
+  }
+
+  .mask-fade-radial {
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 30%, transparent 100%);
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 30%, transparent 100%);
+  }
+
+  .animate-float {
+    animation: float 7s var(--ease-out-soft) infinite;
+  }
+
+  .animate-float-slow {
+    animation: float 9s var(--ease-out-soft) infinite;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.9);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.9);
+  }
+}
+
+/* Anyone who asks for less motion gets essentially none. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   The marketing surface is always dark, whatever the in-app theme is set to.
+   Painting the root element too keeps overscroll from flashing the light canvas.
+   -------------------------------------------------------------------------- */
+html:has(.landing-surface) {
+  background-color: var(--canvas-dark);
+  color-scheme: dark;
+}

@@ -1,0 +1,147 @@
+import { Sparkles, TrendingDown } from 'lucide-react'
+import { Link } from 'react-router-dom'
+
+import { AttendanceRow } from '@/components/app/AttendanceRow'
+import { PageContainer, PageHeader } from '@/components/layout/PageContainer'
+import { DemoNote, DemoTag } from '@/components/ui/DemoTag'
+import { ProgressRing } from '@/components/ui/ProgressRing'
+import { Skeleton, SkeletonRows } from '@/components/ui/Skeleton'
+import { ErrorState } from '@/components/ui/States'
+import { courseById } from '@/data'
+import { attendanceStatusTone } from '@/lib/attendance'
+import { formatRelative } from '@/lib/utils'
+import { useAttendance } from '@/services/queries'
+
+export default function Attendance() {
+  const attendance = useAttendance()
+  const summary = attendance.data
+
+  const below = summary?.courses.filter((course) => course.status === 'below') ?? []
+  const sorted = summary ? [...summary.courses].sort((a, b) => a.percentage - b.percentage) : []
+
+  return (
+    <PageContainer className="space-y-6">
+      <PageHeader
+        title="Attendance"
+        description="Your percentage in each course, and how much room is left before the requirement."
+      />
+
+      {attendance.isPending ? (
+        <div className="space-y-4">
+          <Skeleton className="h-[196px] w-full rounded-card" />
+          <div className="rounded-card border border-line bg-surface p-5">
+            <SkeletonRows count={5} />
+          </div>
+        </div>
+      ) : attendance.isError || !summary ? (
+        <ErrorState
+          title="Attendance is unavailable"
+          description="We could not load your attendance record just now."
+          onRetry={() => attendance.refetch()}
+        />
+      ) : (
+        <>
+          {/* ------------------------------------------------------- overview */}
+          <section className="rounded-card border border-line bg-surface p-5 sm:p-6">
+            <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:gap-8">
+              <ProgressRing
+                value={summary.overallPercentage}
+                threshold={summary.requiredPercentage}
+                tone={attendanceStatusTone[summary.status]}
+                size={148}
+                label="Overall attendance"
+                caption={`${summary.requiredPercentage}% required`}
+              />
+
+              <div className="min-w-0 flex-1 text-center sm:text-left">
+                <div className="flex items-center justify-center gap-2 sm:justify-start">
+                  <h2 className="text-[17px] font-semibold tracking-tight text-ink">
+                    Overall this semester
+                  </h2>
+                  {summary.source === 'demo' ? <DemoTag /> : null}
+                </div>
+
+                <p className="mt-2 text-[14.5px] leading-relaxed text-ink-muted">
+                  You have attended{' '}
+                  <span className="font-medium text-ink">
+                    {summary.totalAttended} of {summary.totalHeld}
+                  </span>{' '}
+                  classes across {summary.courses.length} courses.
+                  {below.length > 0 ? (
+                    <>
+                      {' '}
+                      <span className="font-medium text-danger-ink">
+                        {below.length === 1 ? 'One course is' : `${below.length} courses are`} below
+                        the {summary.requiredPercentage}% requirement.
+                      </span>
+                    </>
+                  ) : (
+                    ' Every course is above the requirement.'
+                  )}
+                </p>
+
+                <p className="mt-3 text-[12.5px] text-ink-subtle">
+                  Updated {formatRelative(summary.updatedAt)}
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* ------------------------------------------------------ shortfall */}
+          {below.length > 0 ? (
+            <section className="rounded-card border border-danger/25 bg-danger-soft/40 p-5">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex items-start gap-3">
+                  <TrendingDown
+                    className="mt-0.5 size-[18px] shrink-0 text-danger-ink"
+                    aria-hidden
+                  />
+                  <div className="min-w-0">
+                    <h2 className="text-[15px] font-semibold text-ink">
+                      {below.length === 1 ? 'One course needs' : `${below.length} courses need`}{' '}
+                      attention
+                    </h2>
+                    <ul className="mt-2 space-y-1.5">
+                      {below.map((course) => (
+                        <li key={course.courseId} className="text-[13.5px] text-ink-muted">
+                          <span className="font-medium text-ink">
+                            {courseById.get(course.courseId)?.name}
+                          </span>{' '}
+                          — {Math.round(course.percentage)}%, attend the next {course.mustAttend}{' '}
+                          classes to reach {course.requiredPercentage}%.
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                <Link
+                  to={`/app/assistant?q=${encodeURIComponent('How is my attendance looking?')}`}
+                  className="press inline-flex shrink-0 items-center justify-center gap-1.5 rounded-control border border-line bg-surface px-3.5 py-2.5 text-[13px] font-medium text-ink hover:border-line-strong"
+                >
+                  <Sparkles className="size-3.5 text-brand-ink" aria-hidden />
+                  Ask the assistant what to do
+                </Link>
+              </div>
+            </section>
+          ) : null}
+
+          {/* -------------------------------------------------------- courses */}
+          <section>
+            <h2 className="mb-3 text-[17px] font-semibold tracking-tight text-ink">By course</h2>
+            <div className="divide-y divide-line rounded-card border border-line bg-surface px-5">
+              {sorted.map((course) => (
+                <AttendanceRow key={course.courseId} attendance={course} />
+              ))}
+            </div>
+          </section>
+
+          <DemoNote>
+            Attendance figures and the {summary.requiredPercentage}% requirement are demo data for
+            this prototype. They are not official university records or rules.
+          </DemoNote>
+        </>
+      )}
+    </PageContainer>
+  )
+}
