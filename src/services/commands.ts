@@ -1,12 +1,18 @@
 import { courseById, courses, deadlineKindLabel, stageShortLabel, weekdayShort } from '@/data'
 import { countdown, toMinutes } from '@/lib/agenda'
-import { formatTime, matches } from '@/lib/utils'
+import { examKindLabel } from '@/lib/exams'
+import { formatMoney } from '@/lib/fees'
+import { daysUntil, formatDateLabel, formatTime, matches } from '@/lib/utils'
 import type {
   AttendanceSummary,
   ClassSession,
   CommandItem,
   Complaint,
   Deadline,
+  EduProgress,
+  ExamSchedule,
+  FeeSummary,
+  ResultsSummary,
 } from '@/types'
 
 import { findNextSession } from './academics'
@@ -55,6 +61,30 @@ const STANDING_COMMANDS: CommandItem[] = [
     to: '/app/attendance',
   },
   {
+    id: 'cmd_academics',
+    kind: 'navigation',
+    title: 'Academics',
+    subtitle: 'Marks, re-evaluation and EDU-Revolution',
+    keywords: ['results', 'marks', 'ca', 'grades', 'score', 'revaluation', 're-evaluation', 'edu'],
+    to: '/app/academics',
+  },
+  {
+    id: 'cmd_exams',
+    kind: 'navigation',
+    title: 'Examinations',
+    subtitle: 'Schedule and seating plan',
+    keywords: ['exam', 'exams', 'seat', 'seating', 'paper', 'end-term', 'datesheet', 'hall'],
+    to: '/app/exams',
+  },
+  {
+    id: 'cmd_fees',
+    kind: 'navigation',
+    title: 'Fees',
+    subtitle: 'Balance, breakdown and payment history',
+    keywords: ['fee', 'payment', 'due', 'money', 'instalment', 'scholarship', 'pay'],
+    to: '/app/fees',
+  },
+  {
     id: 'cmd_timetable',
     kind: 'navigation',
     title: 'Timetable',
@@ -84,12 +114,20 @@ export function buildCommandIndex({
   sessions,
   complaints,
   deadlines,
+  fees,
+  results,
+  edu,
+  exams,
   at = new Date(),
 }: {
   attendance?: AttendanceSummary
   sessions: ClassSession[]
   complaints: Complaint[]
   deadlines: Deadline[]
+  fees?: FeeSummary
+  results?: ResultsSummary
+  edu?: EduProgress
+  exams?: ExamSchedule
   at?: Date
 }): CommandItem[] {
   const items: CommandItem[] = [...STANDING_COMMANDS]
@@ -109,6 +147,37 @@ export function buildCommandIndex({
         to: '/app/attendance',
         badge: `${Math.round(row.percentage)}%`,
         badgeTone: row.status === 'below' ? 'danger' : row.status === 'at-risk' ? 'warn' : 'ok',
+      })
+    }
+
+    const result = results?.courses.find((entry) => entry.courseId === course.id)
+    if (result) {
+      items.push({
+        id: `cmd_res_${course.id}`,
+        kind: 'info',
+        title: `${course.short} marks`,
+        subtitle: `${Math.round(result.assessed)}% of the course assessed · ${course.name}`,
+        keywords: [...aliases, 'result', 'marks', 'ca', 'score', 'grade'],
+        to: '/app/academics',
+        badge: `${Math.round(result.percentage)}%`,
+        badgeTone: result.percentage < 50 ? 'danger' : result.percentage < 65 ? 'warn' : 'ok',
+      })
+    }
+
+    const exam = exams?.exams.find((entry) => entry.courseId === course.id)
+    if (exam) {
+      const days = daysUntil(exam.date, at)
+      items.push({
+        id: `cmd_exam_${course.id}`,
+        kind: 'info',
+        title: `${course.short} ${examKindLabel[exam.kind].toLowerCase()}`,
+        subtitle: exam.seat
+          ? `${formatDateLabel(exam.date)} · ${exam.seat.block} · ${exam.seat.room} · Seat ${exam.seat.seat}`
+          : `${formatDateLabel(exam.date)} · seat not released yet`,
+        keywords: [...aliases, 'exam', 'seat', 'seating', 'paper', 'hall'],
+        to: '/app/exams',
+        badge: days < 0 ? 'Done' : days === 0 ? 'Today' : `${days}d`,
+        badgeTone: days <= 1 && days >= 0 ? 'danger' : days <= 7 ? 'warn' : 'info',
       })
     }
 
@@ -138,6 +207,113 @@ export function buildCommandIndex({
       subtitle: 'Attendance, schedule and whether you can skip',
       keywords: [...aliases, 'ask', 'skip', 'question'],
       to: `/app/assistant?q=${encodeURIComponent(`How is my ${course.short} attendance?`)}`,
+    })
+  }
+
+  /* -------------------------------------------------------- examinations */
+  if (exams?.next) {
+    const next = exams.next
+    const days = daysUntil(next.date, at)
+    const course = courseById.get(next.courseId)
+
+    items.push({
+      id: 'cmd_exam_next',
+      kind: 'info',
+      title: 'Next examination',
+      subtitle: `${course?.short ?? 'Exam'} · ${formatDateLabel(next.date)} · ${formatTime(next.startTime)}`,
+      keywords: ['exam', 'exams', 'next', 'paper', 'datesheet', 'schedule'],
+      to: '/app/exams',
+      badge: days === 0 ? 'Today' : `${days}d`,
+      badgeTone: days <= 1 ? 'danger' : days <= 7 ? 'warn' : 'info',
+    })
+
+    if (next.seat) {
+      items.push({
+        id: 'cmd_exam_seat',
+        kind: 'info',
+        title: 'Your exam seat',
+        subtitle: `${next.seat.block} · ${next.seat.room}${next.seat.note ? ` · ${next.seat.note}` : ''}`,
+        keywords: ['seat', 'seating', 'plan', 'where', 'room', 'block', 'hall', 'exam'],
+        to: '/app/exams',
+        badge: next.seat.seat,
+      })
+    }
+  }
+
+  /* ------------------------------------------------------------- finance */
+  if (fees) {
+    const next = fees.nextDue
+    if (next) {
+      const days = daysUntil(next.dueDate, at)
+      items.push({
+        id: 'cmd_fee_next',
+        kind: 'info',
+        title: 'Upcoming payment',
+        subtitle: `${next.label} · ${days < 0 ? 'overdue' : `due in ${days} ${days === 1 ? 'day' : 'days'}`}`,
+        keywords: ['fee', 'fees', 'payment', 'due', 'pay', 'instalment', 'money'],
+        to: '/app/fees',
+        badge: formatMoney(next.amount, fees.currency),
+        badgeTone: days < 0 ? 'danger' : days <= 7 ? 'warn' : 'info',
+      })
+    }
+
+    items.push({
+      id: 'cmd_fee_breakdown',
+      kind: 'info',
+      title: 'Fee breakdown',
+      subtitle: `${fees.breakdown.length} lines · tuition, hostel and more`,
+      keywords: ['fee', 'fees', 'breakdown', 'structure', 'tuition', 'hostel', 'mess'],
+      to: '/app/fees',
+      badge: formatMoney(fees.totalPayable, fees.currency),
+    })
+
+    items.push({
+      id: 'cmd_fee_history',
+      kind: 'info',
+      title: 'Payment history',
+      subtitle: `${fees.instalments.filter((entry) => entry.status === 'paid').length} payments recorded`,
+      keywords: ['fee', 'fees', 'payment', 'history', 'paid', 'receipt', 'transaction'],
+      to: '/app/fees',
+      badge: formatMoney(fees.totalPaid, fees.currency),
+      badgeTone: 'ok',
+    })
+
+    items.push({
+      id: 'cmd_fee_ask',
+      kind: 'assistant',
+      title: 'Ask CampusOS about fees',
+      subtitle: 'What is due, and when',
+      keywords: ['fee', 'fees', 'payment', 'ask'],
+      to: `/app/assistant?q=${encodeURIComponent('When is my next fee payment due?')}`,
+    })
+  }
+
+  /* ------------------------------------------------------ EDU-Revolution */
+  if (edu) {
+    items.push({
+      id: 'cmd_edu',
+      kind: 'info',
+      title: 'EDU-Revolution progress',
+      subtitle: edu.nextRecommended
+        ? `Next: ${edu.nextRecommended.title}`
+        : 'All activities complete',
+      keywords: ['edu', 'revolution', 'co-curricular', 'activity', 'activities', 'progress'],
+      to: '/app/academics',
+      badge: `${edu.completed}/${edu.required}`,
+      badgeTone: edu.completed >= edu.required ? 'ok' : 'info',
+    })
+  }
+
+  /* --------------------------------------------------------- overall marks */
+  if (results) {
+    items.push({
+      id: 'cmd_results_overall',
+      kind: 'info',
+      title: 'Results',
+      subtitle: 'Weighted average across assessed work',
+      keywords: ['result', 'results', 'marks', 'ca', 'grade', 'average', 'score'],
+      to: '/app/academics',
+      badge: `${Math.round(results.overallPercentage)}%`,
     })
   }
 
@@ -206,6 +382,21 @@ const QUESTION_PATTERNS: { test: RegExp; title: string; question: string }[] = [
     test: /\b(attendance|percentage|short)\b/,
     title: 'How is my attendance?',
     question: 'How is my attendance looking?',
+  },
+  {
+    test: /\b(fee|fees|pay|payment|due|owe|money)\b/,
+    title: 'When is my next fee payment due?',
+    question: 'When is my next fee payment due?',
+  },
+  {
+    test: /\b(marks|result|results|ca|grade|score)\b/,
+    title: 'How are my marks?',
+    question: 'How are my marks so far?',
+  },
+  {
+    test: /\b(exam|exams|seat|seating|paper|datesheet)\b/,
+    title: 'When is my next exam?',
+    question: 'When is my next exam and where do I sit?',
   },
 ]
 

@@ -86,6 +86,65 @@ export async function request<T>(
   }
 }
 
+/**
+ * Like `request`, but the demo fallback is itself asynchronous.
+ *
+ * Aggregate endpoints need this: with no backend, standing in for `/today`
+ * means gathering the five datasets the endpoint would have read and composing
+ * them, which is a set of awaits rather than a constant.
+ */
+export async function requestAsync<T>(
+  path: string,
+  fallback: () => Promise<T>,
+  init?: RequestInit,
+): Promise<T> {
+  if (backendState === 'offline') {
+    return fallback()
+  }
+
+  try {
+    const data = await fetchJson<T>(path, init)
+    setBackendState('online')
+    return data
+  } catch (error) {
+    setBackendState('offline')
+    if (import.meta.env.DEV) {
+      console.info(`[CampusOS] ${path} unavailable — composing from demo data.`, error)
+    }
+    return fallback()
+  }
+}
+
+/**
+ * Like `mutate`, but the demo fallback is itself asynchronous.
+ *
+ * The AI seam needs this: with no backend running, answering locally means
+ * *retrieving* the student's records first, which is async. Keeping it a
+ * separate function rather than widening `mutate` keeps the common case —
+ * a synchronous optimistic result — free of `Awaited<T>` gymnastics.
+ */
+export async function mutateAsync<T>(
+  path: string,
+  body: unknown,
+  fallback: () => Promise<T>,
+  method: 'POST' | 'PATCH' | 'DELETE' = 'POST',
+): Promise<T> {
+  if (backendState === 'offline') {
+    return fallback()
+  }
+  try {
+    const data = await fetchJson<T>(path, { method, body: JSON.stringify(body) })
+    setBackendState('online')
+    return data
+  } catch (error) {
+    setBackendState('offline')
+    if (import.meta.env.DEV) {
+      console.info(`[CampusOS] ${path} fell back to the local engine.`, error)
+    }
+    return fallback()
+  }
+}
+
 /** Writes that must still "succeed" in demo mode, returning an optimistic result. */
 export async function mutate<T>(
   path: string,

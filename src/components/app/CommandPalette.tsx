@@ -13,7 +13,13 @@ import { useNavigate } from 'react-router-dom'
 import { easeOutSoft } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { buildCommandIndex, searchCommands } from '@/services/commands'
-import { useCampusContext } from '@/services/queries'
+import {
+  useCampusContext,
+  useEduProgress,
+  useExams,
+  useFees,
+  useResults,
+} from '@/services/queries'
 import type { CommandItem, CommandKind, SignalTone } from '@/types'
 
 const kindIcon: Record<CommandKind, typeof Search> = {
@@ -57,6 +63,10 @@ export function CommandPalette({
   const navigate = useNavigate()
   const reduced = useReducedMotion()
   const { attendance, timetable, complaints, deadlines } = useCampusContext()
+  const feesQuery = useFees()
+  const resultsQuery = useResults()
+  const eduQuery = useEduProgress()
+  const examsQuery = useExams()
 
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
@@ -70,8 +80,21 @@ export function CommandPalette({
         sessions: timetable.data ?? [],
         complaints: complaints.data ?? [],
         deadlines: deadlines.data ?? [],
+        fees: feesQuery.data,
+        results: resultsQuery.data,
+        edu: eduQuery.data,
+        exams: examsQuery.data,
       }),
-    [attendance.data, timetable.data, complaints.data, deadlines.data],
+    [
+      attendance.data,
+      timetable.data,
+      complaints.data,
+      deadlines.data,
+      feesQuery.data,
+      resultsQuery.data,
+      eduQuery.data,
+      examsQuery.data,
+    ],
   )
 
   const results = useMemo(() => searchCommands(index, query), [index, query])

@@ -4,12 +4,8 @@ import { cn } from '@/lib/utils'
 import type { CourseAttendance } from '@/types'
 
 import { Badge } from '@/components/ui/Badge'
-
-const barTone = {
-  ok: 'bg-ok',
-  warn: 'bg-warn',
-  danger: 'bg-danger',
-} as const
+import { Meter } from '@/components/ui/Meter'
+import { Sparkline } from '@/components/ui/Sparkline'
 
 /**
  * A course's attendance as one row: percentage, the requirement line, and the
@@ -46,29 +42,39 @@ export function AttendanceRow({
           </p>
         </div>
 
-        <div className="shrink-0 text-right">
-          <p className="text-[18px] font-semibold leading-none tabular-nums text-ink">
-            {percentage}%
-          </p>
-          <Badge tone={tone} className="mt-1.5">
-            {attendanceStatusLabel[attendance.status]}
-          </Badge>
+        <div className="flex shrink-0 items-center gap-4">
+          {/* Where it is going, beside where it is. For a course sliding toward
+              the line, the direction is the more actionable of the two. */}
+          {attendance.trend && attendance.trend.length > 1 ? (
+            <Sparkline
+              values={attendance.trend}
+              threshold={attendance.requiredPercentage}
+              tone={tone}
+              label={`${course?.short ?? 'Course'} attendance over ${attendance.trend.length} weeks, now ${percentage}% against a ${attendance.requiredPercentage}% requirement`}
+              className="hidden sm:block"
+            />
+          ) : null}
+
+          <div className="text-right">
+            <p className="text-[18px] font-semibold leading-none tabular-nums text-ink">
+              {percentage}%
+            </p>
+            <Badge tone={tone} className="mt-1.5">
+              {attendanceStatusLabel[attendance.status]}
+            </Badge>
+          </div>
         </div>
       </div>
 
       {/* The requirement is a marker on the track, so the gap is visible rather
           than something the student has to compute from two numbers. */}
-      <div className="relative mt-3 h-1.5 rounded-full bg-surface-muted">
-        <div
-          className={cn('h-full rounded-full transition-[width] duration-700', barTone[tone])}
-          style={{ width: `${Math.min(100, percentage)}%` }}
-        />
-        <span
-          aria-hidden
-          className="absolute -top-1 h-3.5 w-px bg-ink-subtle"
-          style={{ left: `${attendance.requiredPercentage}%` }}
-        />
-      </div>
+      <Meter
+        value={percentage}
+        threshold={attendance.requiredPercentage}
+        tone={tone}
+        label={`${course?.short ?? 'Course'} attendance`}
+        className="mt-3"
+      />
 
       <p className="mt-2 text-[12.5px] text-ink-muted">{consequence}</p>
     </div>

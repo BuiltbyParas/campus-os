@@ -25,3 +25,7 @@ dist-ssr
 
 # Claude Code local settings (machine-specific)
 .claude/settings.local.json
+
+# Accidental nested clone of this same repository — it has its own .git, so
+# committing it would add a broken submodule reference. Safe to delete.
+campus-os/

@@ -7,7 +7,10 @@ import {
   weekdayShort,
 } from '@/data'
 import { classesCanMiss, classesMustAttend, percentage } from '@/lib/attendance'
-import { formatDateLabel, formatTime, uid } from '@/lib/utils'
+import { examDurationMinutes, examKindLabel, formatDuration } from '@/lib/exams'
+import { dueLabel, formatMoney } from '@/lib/fees'
+import { reachableRange, revaluationWindow } from '@/lib/results'
+import { daysUntil, formatDateLabel, formatTime, uid } from '@/lib/utils'
 import type {
   AssistantDataPoint,
   AssistantSource,
@@ -18,17 +21,25 @@ import type {
   ClassSession,
   Course,
   Deadline,
+  EduProgress,
+  ExamSchedule,
+  FeeSummary,
+  ResultsSummary,
 } from '@/types'
 
 import {
   findNextSession,
   getAttendance,
+  getResults,
   listSessions,
   sessionsForDay,
   weekdayFromDate,
 } from './academics'
 import { listEvents, listNotifications } from './campus'
+import { getEduProgress } from './campusLife'
+import { getExams } from './examinations'
 import { listComplaints } from './complaints'
+import { getFees } from './finance'
 import { listDeadlines } from './signals'
 
 /**
@@ -61,10 +72,25 @@ type Intent =
   | 'events'
   | 'deadlines'
   | 'day'
+  | 'fees'
+  | 'results'
+  | 'edu'
+  | 'exams'
   | 'unknown'
 
 function detectIntent(text: string): Intent {
   if (/\b(skip|miss|bunk|leave out|not attend|not go)\b/.test(text)) return 'skip'
+  /* Money and marks are checked early: "when is my fee due" also matches the
+     deadline pattern, and the more specific reading is the right one. */
+  if (/\b(fee|fees|pay|payment|instal?ment|scholarship|owe|outstanding|balance)\b/.test(text))
+    return 'fees'
+  if (/\b(edu[- ]?revolution|co[- ]?curricular|activities|activity)\b/.test(text)) return 'edu'
+  /* Checked before marks and deadlines: "exam" appears in both of those
+     patterns, and someone asking about an exam wants the paper, not a grade. */
+  if (/\b(exam|exams|seat|seating|datesheet|date sheet|invigilat|hall ticket|paper)\b/.test(text))
+    return 'exams'
+  if (/\b(marks?|result|results|grade|grades|ca\s?\d|mid[- ]?term|re[- ]?eval|revaluation|score)\b/.test(text))
+    return 'results'
   if (/\b(deadline|due|assignment|submission|coursework|homework|quiz)\b/.test(text))
     return 'deadlines'
   if (/\b(my day|today|what'?s on|whats on|agenda|plan)\b/.test(text)) return 'day'
@@ -490,10 +516,235 @@ function answerDay(
   }
 }
 
+function answerFees(fees: FeeSummary): Omit<ChatMessage, 'id' | 'role'> {
+  const feeSource: AssistantSource = {
+    kind: 'policy',
+    label: 'Your fee record',
+    detail: 'Instalment ledger for this semester',
+    source: fees.source,
+  }
+
+  if (!fees.nextDue) {
+    return {
+      content: `Nothing is outstanding — all ${formatMoney(fees.totalPayable, fees.currency)} for this semester is paid.`,
+      data: [{ label: 'Paid', value: formatMoney(fees.totalPaid, fees.currency), tone: 'ok' }],
+      sources: [feeSource],
+      actions: [{ label: 'View fees', to: '/app/fees' }],
+    }
+  }
+
+  const next = fees.nextDue
+  const days = daysUntil(next.dueDate)
+  const overdue = days < 0
+
+  return {
+    content: overdue
+      ? `${formatMoney(next.amount, fees.currency)} is overdue — ${next.label} was due ${formatDateLabel(next.dueDate).toLowerCase()}. Your outstanding balance is ${formatMoney(fees.outstanding, fees.currency)}.`
+      : `${formatMoney(next.amount, fees.currency)} is due ${dueLabel(next.dueDate).toLowerCase().replace('due ', '')} — ${next.label}, on ${formatDateLabel(next.dueDate).toLowerCase()}. That is your whole remaining balance for the semester.`,
+    data: [
+      {
+        label: 'Due',
+        value: formatMoney(next.amount, fees.currency),
+        tone: overdue ? 'danger' : days <= 7 ? 'warn' : 'neutral',
+      },
+      { label: 'When', value: formatDateLabel(next.dueDate) },
+      { label: 'Paid so far', value: formatMoney(fees.totalPaid, fees.currency), tone: 'ok' },
+    ],
+    sources: [
+      feeSource,
+      ...(fees.scholarship
+        ? [
+            {
+              kind: 'policy' as const,
+              label: fees.scholarship.name,
+              detail: `${formatMoney(fees.scholarship.amount, fees.currency)} applied — a demo award, not a real scholarship`,
+              source: 'demo' as const,
+            },
+          ]
+        : []),
+    ],
+    actions: [{ label: 'View fees', to: '/app/fees' }],
+  }
+}
+
+function answerResults(
+  course: Course | null,
+  results: ResultsSummary,
+): Omit<ChatMessage, 'id' | 'role'> {
+  const resultSource = (detail: string): AssistantSource => ({
+    kind: 'policy',
+    label: 'Your assessed work',
+    detail,
+    source: results.source,
+  })
+
+  if (course) {
+    const row = results.courses.find((entry) => entry.courseId === course.id)
+    if (!row) {
+      return {
+        content: `Nothing has been published for ${course.name} yet.`,
+        sources: [resultSource(`No assessments recorded for ${course.short}`)],
+      }
+    }
+
+    const range = reachableRange(row)
+    const window = revaluationWindow(row)
+
+    return {
+      content: `You are at ${Math.round(row.percentage)}% in ${course.name} across the ${Math.round(row.assessed)}% of the course assessed so far. With ${Math.round(row.remainingWeight)}% still to come you can finish anywhere between ${Math.round(range.worst)}% and ${Math.round(range.best)}%.${window.open ? ` Re-evaluation is open for another ${window.daysLeft} ${window.daysLeft === 1 ? 'day' : 'days'} — a demo window, not an official deadline.` : ''}`,
+      data: [
+        {
+          label: 'So far',
+          value: `${Math.round(row.percentage)}%`,
+          tone: row.percentage < 50 ? 'danger' : row.percentage < 65 ? 'warn' : 'ok',
+        },
+        { label: 'Assessed', value: `${Math.round(row.assessed)}%` },
+        { label: 'Still open', value: `${Math.round(row.remainingWeight)}%` },
+      ],
+      sources: [
+        resultSource(
+          `${row.assessments.length} assessments in ${course.short}, most recently ${row.assessments.at(-1)?.name ?? ''}`.trim(),
+        ),
+      ],
+      actions: [{ label: 'View marks', to: '/app/academics' }],
+    }
+  }
+
+  const weakest = [...results.courses].sort((a, b) => a.percentage - b.percentage)[0]
+  const weakestCourse = weakest ? courseById.get(weakest.courseId) : undefined
+
+  return {
+    content: `Your weighted average across everything assessed is ${Math.round(results.overallPercentage)}%.${weakestCourse ? ` The one to watch is ${weakestCourse.name} at ${Math.round(weakest.percentage)}%.` : ''}`,
+    data: [
+      { label: 'Average', value: `${Math.round(results.overallPercentage)}%` },
+      ...(weakestCourse
+        ? [
+            {
+              label: weakestCourse.short,
+              value: `${Math.round(weakest.percentage)}%`,
+              tone: (weakest.percentage < 50 ? 'danger' : 'warn') as 'danger' | 'warn',
+            },
+          ]
+        : []),
+    ],
+    sources: [resultSource(`${results.courses.length} courses with published assessments`)],
+    actions: [{ label: 'View marks', to: '/app/academics' }],
+  }
+}
+
+function answerEdu(edu: EduProgress): Omit<ChatMessage, 'id' | 'role'> {
+  const source: AssistantSource = {
+    kind: 'policy',
+    label: 'EDU-Revolution record',
+    detail: `${edu.completed} of ${edu.required} activities — a demo track, not a real requirement`,
+    source: edu.source,
+  }
+
+  if (edu.completed >= edu.required) {
+    return {
+      content: `You have completed all ${edu.required} EDU-Revolution activities.`,
+      data: [{ label: 'Complete', value: `${edu.completed}/${edu.required}`, tone: 'ok' }],
+      sources: [source],
+      actions: [{ label: 'View progress', to: '/app/academics' }],
+    }
+  }
+
+  const next = edu.nextRecommended
+  return {
+    content: `You are ${edu.completed} of ${edu.required} through EDU-Revolution.${next ? ` The quickest next step is ${next.title} — ${next.detail.toLowerCase()}` : ''}`,
+    data: [
+      { label: 'Progress', value: `${edu.completed}/${edu.required}` },
+      { label: 'Remaining', value: String(edu.required - edu.completed), tone: 'warn' },
+    ],
+    sources: [source],
+    actions: [{ label: 'View progress', to: '/app/academics' }],
+  }
+}
+
+function answerExams(
+  course: Course | null,
+  schedule: ExamSchedule,
+  at: Date,
+): Omit<ChatMessage, 'id' | 'role'> {
+  const scheduleSource = (detail: string): AssistantSource => ({
+    kind: 'timetable',
+    label: 'Your examination schedule',
+    detail,
+    source: schedule.source,
+  })
+
+  /* A named course beats "next": someone who asked about DBMS wants DBMS even
+     if their Networks paper happens to come first. */
+  const target = course
+    ? schedule.exams.find((exam) => exam.courseId === course.id)
+    : schedule.next
+
+  if (!target) {
+    return {
+      content: course
+        ? `I do not have an examination scheduled for ${course.name}.`
+        : 'There are no examinations left on your schedule.',
+      sources: [scheduleSource(`${schedule.exams.length} papers published`)],
+      actions: [{ label: 'View exams', to: '/app/exams' }],
+    }
+  }
+
+  const subject = courseById.get(target.courseId)
+  const days = daysUntil(target.date, at)
+  const when =
+    days < 0
+      ? 'has already been held'
+      : days === 0
+        ? 'is today'
+        : days === 1
+          ? 'is tomorrow'
+          : `is in ${days} days`
+
+  const seatSentence = target.seat
+    ? ` You are in ${target.seat.block}, ${target.seat.room}, seat ${target.seat.seat}${target.seat.note ? ` — ${target.seat.note.toLowerCase()}` : ''}.`
+    : ' Your seat has not been released yet.'
+
+  const data: AssistantDataPoint[] = [
+    {
+      label: 'When',
+      value: formatDateLabel(target.date),
+      tone: days <= 1 && days >= 0 ? 'warn' : 'neutral',
+    },
+    { label: 'Starts', value: formatTime(target.startTime) },
+    { label: 'Runs', value: formatDuration(examDurationMinutes(target)) },
+  ]
+
+  if (target.seat) {
+    data.push({ label: 'Seat', value: target.seat.seat, tone: 'ok' })
+  }
+
+  const sources: AssistantSource[] = [
+    scheduleSource(
+      `${subject?.short ?? 'Exam'} ${examKindLabel[target.kind].toLowerCase()} · ${formatDateLabel(target.date)} · ${formatTime(target.startTime)}`,
+    ),
+  ]
+
+  if (target.seat) {
+    sources.push({
+      kind: 'timetable',
+      label: 'Seating plan',
+      detail: `${target.seat.block} · ${target.seat.room} · seat ${target.seat.seat}`,
+      source: schedule.source,
+    })
+  }
+
+  return {
+    content: `Your ${subject?.name ?? 'exam'} ${examKindLabel[target.kind].toLowerCase()} ${when} — ${formatDateLabel(target.date).toLowerCase()} at ${formatTime(target.startTime)}, running ${formatDuration(examDurationMinutes(target))}.${seatSentence}${target.note ? ` ${target.note}` : ''}`,
+    data,
+    sources,
+    actions: [{ label: 'View exams', to: '/app/exams' }],
+  }
+}
+
 function answerUnknown(): Omit<ChatMessage, 'id' | 'role'> {
   return {
     content:
-      'I can answer questions about your attendance, your timetable, your coursework deadlines, the requests you have filed, and what is happening on campus. Try asking whether you can skip a specific class.',
+      'I can answer questions about your attendance, timetable, exams and seating, marks, fees, EDU-Revolution progress, coursework deadlines, the requests you have filed, and what is happening on campus. Try asking whether you can skip a specific class.',
   }
 }
 
@@ -535,6 +786,22 @@ export async function ask(question: string): Promise<ChatMessage> {
     case 'day': {
       const [sessions, deadlines] = await Promise.all([listSessions(), listDeadlines()])
       body = answerDay(sessions, deadlines, new Date())
+      break
+    }
+    case 'fees': {
+      body = answerFees(await getFees())
+      break
+    }
+    case 'results': {
+      body = answerResults(course, await getResults())
+      break
+    }
+    case 'edu': {
+      body = answerEdu(await getEduProgress())
+      break
+    }
+    case 'exams': {
+      body = answerExams(course, await getExams(), new Date())
       break
     }
     default:

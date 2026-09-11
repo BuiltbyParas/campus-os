@@ -40,6 +40,20 @@ export function formatDateLabel(isoDate: string) {
   return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
 }
 
+/**
+ * Whole days from `at` until an ISO date, in local calendar terms.
+ *
+ * Both sides are flattened to midnight first, so "tomorrow" is 1 whether it is
+ * asked at 9am or at 11pm — a countdown that reads 0 for something due the next
+ * morning is worse than useless.
+ */
+export function daysUntil(isoDate: string, at = new Date()) {
+  const target = new Date(`${isoDate}T00:00:00`)
+  const today = new Date(at)
+  today.setHours(0, 0, 0, 0)
+  return Math.round((target.getTime() - today.getTime()) / 86_400_000)
+}
+
 export function formatRelative(timestamp: string) {
   const then = new Date(timestamp).getTime()
   const mins = Math.round((Date.now() - then) / 60_000)

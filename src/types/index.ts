@@ -60,6 +60,13 @@ export interface CourseAttendance {
   canMiss: number
   /** Consecutive classes needed to climb back to the requirement. 0 when already there. */
   mustAttend: number
+  /**
+   * Running percentage after each recorded week, oldest first.
+   *
+   * Derived from the same weekly ledger as `attended` / `held`, so the trend a
+   * student sees can never disagree with the figure printed beside it.
+   */
+  trend?: number[]
 }
 
 export interface AttendanceSummary {
@@ -69,6 +76,8 @@ export interface AttendanceSummary {
   totalHeld: number
   status: AttendanceStatus
   courses: CourseAttendance[]
+  /** Running overall percentage after each recorded week, oldest first. */
+  trend?: number[]
   /** Demo figures are labelled in the UI wherever this is `demo`. */
   source: DataSource
   updatedAt: string
@@ -302,10 +311,18 @@ export interface Signal {
   tone: SignalTone
   title: string
   detail: string
+  /**
+   * The one figure this signal is about — "72%", "₹18,500", "6 days".
+   *
+   * Optional because not every signal has one. Where it exists the UI can set
+   * it as the visual anchor and let the sentence become supporting text, which
+   * is the difference between reading an alert and seeing it.
+   */
+  metric?: string
   /** Higher sorts first. Derived from how soon and how consequential it is. */
   urgency: number
   action?: { label: string; to: string }
-  source: 'attendance' | 'timetable' | 'complaint' | 'deadline' | 'event'
+  source: 'attendance' | 'timetable' | 'complaint' | 'deadline' | 'event' | 'fee' | 'result' | 'edu' | 'exam'
 }
 
 /* ------------------------------------------------------------- Insights */
@@ -316,6 +333,12 @@ export interface Insight {
   value: string
   detail?: string
   tone?: SignalTone
+  /**
+   * 0–100, when the figure is genuinely a proportion of something.
+   * Rendered as a meter beside the value; omitted where a bar would be a
+   * decoration rather than a second reading of the number.
+   */
+  progress?: number
 }
 
 /* ------------------------------------------------------- Command palette */
@@ -333,4 +356,156 @@ export interface CommandItem {
   /** Shown on the right — a live value such as "72%". */
   badge?: string
   badgeTone?: SignalTone
+}
+
+/* ------------------------------------------------------ Academic records */
+
+/**
+ * One assessed piece of work.
+ *
+ * Scores are stored raw — obtained out of max, plus the weight it carries
+ * toward the course. Every aggregate the UI shows is derived from these, so a
+ * course percentage can never drift from the marks it came from.
+ */
+export interface Assessment {
+  id: Id
+  courseId: Id
+  /** e.g. "CA 1", "Mid-term". */
+  name: string
+  score: number
+  maxScore: number
+  /** Percentage of the course this assessment contributes. */
+  weight: number
+  publishedAt: string
+}
+
+export interface CourseResult {
+  courseId: Id
+  assessments: Assessment[]
+  /** Weighted marks earned so far, out of the weight assessed so far. */
+  obtained: number
+  assessed: number
+  percentage: number
+  /** Weight still unassessed — what is left to play for. */
+  remainingWeight: number
+  publishedAt: string
+}
+
+export interface ResultsSummary {
+  courses: CourseResult[]
+  /** Weighted mean across everything assessed so far. */
+  overallPercentage: number
+  latest?: CourseResult
+  source: DataSource
+}
+
+/* -------------------------------------------------------- Examinations */
+
+export type ExamKind = 'mid-term' | 'end-term' | 'practical'
+
+/**
+ * A seat allocation.
+ *
+ * Released separately from — and usually days after — the schedule itself,
+ * which is why it is optional on `Exam`. "Not published yet" is a real state
+ * the product must be able to say out loud rather than render as a blank.
+ */
+export interface ExamSeat {
+  block: string
+  room: string
+  /** Seat label as printed on the plan, e.g. "B-12". */
+  seat: string
+  /** Plain-language locator, e.g. "Row 3, second from the window". */
+  note?: string
+  /** When the allocation was published. */
+  publishedAt: string
+}
+
+export interface Exam {
+  id: Id
+  courseId: Id
+  kind: ExamKind
+  /** ISO date, e.g. 2026-09-30 */
+  date: string
+  /** 24h local times. */
+  startTime: string
+  endTime: string
+  seat?: ExamSeat
+  /** Instructions specific to this paper, e.g. permitted materials. */
+  note?: string
+}
+
+export interface ExamSchedule {
+  exams: Exam[]
+  /** The soonest exam still ahead. Derived, never stored. */
+  next?: Exam
+  /** How many of the listed exams have a seat allocation yet. */
+  seatsPublished: number
+  source: DataSource
+}
+
+/* --------------------------------------------------------------- Finance */
+
+export type FeeStatus = 'paid' | 'due' | 'upcoming'
+
+/** A single line in the fee breakdown, e.g. tuition or hostel. */
+export interface FeeLine {
+  label: string
+  amount: number
+  note?: string
+}
+
+export interface FeeInstalment {
+  id: Id
+  label: string
+  amount: number
+  /** ISO date. */
+  dueDate: string
+  status: FeeStatus
+  paidOn?: string
+  method?: string
+  reference?: string
+}
+
+export interface FeeSummary {
+  /** ISO 4217. Amounts are minor-unit free — whole rupees. */
+  currency: string
+  totalPayable: number
+  totalPaid: number
+  outstanding: number
+  breakdown: FeeLine[]
+  instalments: FeeInstalment[]
+  scholarship?: { name: string; amount: number }
+  /** The next thing actually owed, derived rather than stored. */
+  nextDue?: FeeInstalment
+  source: DataSource
+}
+
+/* -------------------------------------------------- Co-curricular track */
+
+export type EduActivityStatus = 'completed' | 'in-progress' | 'pending'
+
+/**
+ * An EDU-Revolution activity.
+ *
+ * A fictional co-curricular track used to show progress rather than a
+ * navigation item that leads to an empty page.
+ */
+export interface EduActivity {
+  id: Id
+  title: string
+  category: string
+  status: EduActivityStatus
+  detail: string
+  completedOn?: string
+  /** The one the product suggests doing next. */
+  recommended?: boolean
+}
+
+export interface EduProgress {
+  completed: number
+  required: number
+  activities: EduActivity[]
+  nextRecommended?: EduActivity
+  source: DataSource
 }

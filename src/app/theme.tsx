@@ -22,12 +22,23 @@ function systemPrefersDark() {
   return window.matchMedia('(prefers-color-scheme: dark)').matches
 }
 
+/**
+ * CampusOS is a dark product.
+ *
+ * The deep canvas is the environment the whole visual system is designed
+ * against — depth, ambient light and the glass material all read correctly on
+ * it and wash out on white. Following the OS preference meant a student on a
+ * light laptop met a white portal that looked like every other university ERP,
+ * so dark is the default and light is an explicit choice in Settings.
+ */
+const DEFAULT_THEME: Theme = 'dark'
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
     try {
-      return (localStorage.getItem(KEY) as Theme | null) ?? 'system'
+      return (localStorage.getItem(KEY) as Theme | null) ?? DEFAULT_THEME
     } catch {
-      return 'system'
+      return DEFAULT_THEME
     }
   })
   const [systemDark, setSystemDark] = useState(() => systemPrefersDark())

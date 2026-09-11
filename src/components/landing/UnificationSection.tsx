@@ -1,7 +1,7 @@
 import { motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from 'framer-motion'
 import { useRef, useState } from 'react'
 
-import { IntelligenceCore } from './IntelligenceCore'
+import { IntelligenceCore } from '@/components/core/IntelligenceCore'
 import { Container, Reveal, SectionHeading } from './primitives'
 
 const FRAGMENTS = [

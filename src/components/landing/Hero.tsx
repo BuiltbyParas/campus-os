@@ -7,7 +7,7 @@ import { easeOutSoft } from '@/lib/motion'
 
 import { DashboardPreview } from './DashboardPreview'
 import { FloatingBadges } from './FloatingBadges'
-import { IntelligenceCore } from './IntelligenceCore'
+import { IntelligenceCore } from '@/components/core/IntelligenceCore'
 import { Container, Glow } from './primitives'
 
 export function Hero() {

@@ -5,7 +5,10 @@ import { AttendanceProjection } from '@/components/app/AttendanceProjection'
 import { AttendanceRow } from '@/components/app/AttendanceRow'
 import { PageContainer, PageHeader } from '@/components/layout/PageContainer'
 import { DemoNote, DemoTag } from '@/components/ui/DemoTag'
+import { CountUp } from '@/components/ui/CountUp'
 import { ProgressRing } from '@/components/ui/ProgressRing'
+import { Sparkline } from '@/components/ui/Sparkline'
+import { StatTile } from '@/components/ui/StatTile'
 import { Skeleton, SkeletonRows } from '@/components/ui/Skeleton'
 import { ErrorState } from '@/components/ui/States'
 import { courseById } from '@/data'
@@ -19,6 +22,8 @@ export default function Attendance() {
 
   const below = summary?.courses.filter((course) => course.status === 'below') ?? []
   const sorted = summary ? [...summary.courses].sort((a, b) => a.percentage - b.percentage) : []
+  const onTrack = summary?.courses.filter((course) => course.status === 'safe').length ?? 0
+  const weakest = sorted[0]
 
   return (
     <PageContainer className="space-y-6">
@@ -81,10 +86,64 @@ export default function Attendance() {
                   )}
                 </p>
 
+                {/* The shape of the semester so far, drawn from the same
+                    weekly ledger the percentage above is summed from. */}
+                {summary.trend && summary.trend.length > 1 ? (
+                  <div className="mt-4 flex items-center gap-3">
+                    <Sparkline
+                      values={summary.trend}
+                      threshold={summary.requiredPercentage}
+                      tone={attendanceStatusTone[summary.status]}
+                      width={132}
+                      height={34}
+                      label={`Overall attendance across ${summary.trend.length} weeks, ending at ${Math.round(summary.overallPercentage)}% against a ${summary.requiredPercentage}% requirement`}
+                    />
+                    <p className="text-[12px] leading-snug text-ink-subtle">
+                      {summary.trend.length} weeks
+                      <br />
+                      {summary.trend[summary.trend.length - 1] >= summary.trend[0]
+                        ? 'holding steady'
+                        : 'trending down'}
+                    </p>
+                  </div>
+                ) : null}
+
                 <p className="mt-3 text-[12.5px] text-ink-subtle">
                   Updated {formatRelative(summary.updatedAt)}
                 </p>
               </div>
+            </div>
+
+            {/* The three figures a student checks before deciding anything. */}
+            <div className="mt-6 grid gap-3 border-t border-line pt-5 sm:grid-cols-3">
+              <StatTile
+                label="Classes attended"
+                value={
+                  <>
+                    <CountUp value={summary.totalAttended} />
+                    <span className="text-[17px] text-ink-muted"> / {summary.totalHeld}</span>
+                  </>
+                }
+                detail={`Across ${summary.courses.length} courses`}
+              />
+              <StatTile
+                label="Courses on track"
+                value={
+                  <>
+                    <CountUp value={onTrack} />
+                    <span className="text-[17px] text-ink-muted"> / {summary.courses.length}</span>
+                  </>
+                }
+                tone={onTrack === summary.courses.length ? 'ok' : 'warn'}
+                detail={below.length > 0 ? `${below.length} below the line` : 'None below the line'}
+              />
+              <StatTile
+                label="Lowest course"
+                value={weakest ? `${Math.round(weakest.percentage)}%` : '—'}
+                tone={weakest ? attendanceStatusTone[weakest.status] : 'info'}
+                detail={weakest ? (courseById.get(weakest.courseId)?.name ?? undefined) : undefined}
+                to="#by-course"
+              />
             </div>
           </section>
 
@@ -131,7 +190,7 @@ export default function Attendance() {
           <AttendanceProjection summary={summary} />
 
           {/* -------------------------------------------------------- courses */}
-          <section>
+          <section id="by-course" className="scroll-mt-24">
             <h2 className="mb-3 text-[17px] font-semibold tracking-tight text-ink">By course</h2>
             <div className="divide-y divide-line rounded-card border border-line bg-surface px-5">
               {sorted.map((course) => (

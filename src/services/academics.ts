@@ -2,6 +2,7 @@ import {
   attendanceSummary,
   courses,
   demoStudent,
+  resultsSummary,
   timetable,
   weekdays,
 } from '@/data'
@@ -9,6 +10,7 @@ import type {
   AttendanceSummary,
   ClassSession,
   Course,
+  ResultsSummary,
   SessionStatus,
   Student,
   Weekday,
@@ -34,6 +36,17 @@ export function listCourses(): Promise<Course[]> {
 
 export function getAttendance(): Promise<AttendanceSummary> {
   return request('/attendance', () => attendanceSummary)
+}
+
+/**
+ * Assessed work.
+ *
+ * The backend is expected to return raw assessments per course; every
+ * percentage the UI shows is derived from them by `lib/results`, so a course
+ * average can never drift from the marks behind it.
+ */
+export function getResults(): Promise<ResultsSummary> {
+  return request('/results', () => resultsSummary)
 }
 
 /* -------------------------------------------------------------- timetable */

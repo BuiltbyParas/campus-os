@@ -47,15 +47,35 @@ export function attendanceStatus(
   return classesCanMiss(attended, held, required) <= AT_RISK_MARGIN ? 'at-risk' : 'safe'
 }
 
+/**
+ * The running percentage after each week, from a weekly `[attended, held]`
+ * ledger.
+ *
+ * Cumulative rather than per-week on purpose: attendance *is* a running total,
+ * and a chart of isolated weeks would swing wildly on a week with two classes
+ * in it while the figure the student is judged on barely moved.
+ */
+export function trendFromWeeks(weeks: [number, number][]): number[] {
+  let attended = 0
+  let held = 0
+  return weeks.map(([weekAttended, weekHeld]) => {
+    attended += weekAttended
+    held += weekHeld
+    return percentage(attended, held)
+  })
+}
+
 /** Builds the full derived record the UI consumes from raw counts. */
 export function buildCourseAttendance(input: {
   courseId: string
   attended: number
   held: number
   requiredPercentage: number
+  trend?: number[]
 }): CourseAttendance {
-  const { courseId, attended, held, requiredPercentage } = input
+  const { courseId, attended, held, requiredPercentage, trend } = input
   return {
+    trend,
     courseId,
     attended,
     held,

@@ -13,6 +13,9 @@ import NotFound from '@/pages/NotFound'
 const Dashboard = lazy(() => import('@/pages/Dashboard'))
 const Assistant = lazy(() => import('@/pages/Assistant'))
 const Attendance = lazy(() => import('@/pages/Attendance'))
+const Academics = lazy(() => import('@/pages/Academics'))
+const Fees = lazy(() => import('@/pages/Fees'))
+const Examinations = lazy(() => import('@/pages/Examinations'))
 const Timetable = lazy(() => import('@/pages/Timetable'))
 const Complaints = lazy(() => import('@/pages/Complaints'))
 const ReportIssue = lazy(() => import('@/pages/ReportIssue'))
@@ -51,6 +54,9 @@ const routes: RouteObject[] = [
       { index: true, element: lazyRoute(<Dashboard />) },
       { path: 'assistant', element: lazyRoute(<Assistant />) },
       { path: 'attendance', element: lazyRoute(<Attendance />) },
+      { path: 'academics', element: lazyRoute(<Academics />) },
+      { path: 'exams', element: lazyRoute(<Examinations />) },
+      { path: 'fees', element: lazyRoute(<Fees />) },
       { path: 'timetable', element: lazyRoute(<Timetable />) },
       { path: 'complaints', element: lazyRoute(<Complaints />) },
       { path: 'complaints/new', element: lazyRoute(<ReportIssue />) },

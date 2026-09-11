@@ -4,17 +4,25 @@ import {
   courseById,
   deadlineKindLabel,
   deadlines as demoDeadlines,
+  stageShortLabel,
   type Announcement,
 } from '@/data'
 import { countdown, toMinutes } from '@/lib/agenda'
-import { formatTime } from '@/lib/utils'
+import { examKindLabel, examTone } from '@/lib/exams'
+import { formatMoney } from '@/lib/fees'
+import { revaluationWindow } from '@/lib/results'
+import { daysUntil, formatTime } from '@/lib/utils'
 import type {
   AttendanceSummary,
   CampusEvent,
   ClassSession,
   Complaint,
   Deadline,
+  EduProgress,
+  ExamSchedule,
+  FeeSummary,
   Insight,
+  ResultsSummary,
   Signal,
   SignalTone,
   Weekday,
@@ -59,12 +67,20 @@ export function buildSignals({
   sessions,
   complaints,
   deadlines,
+  fees,
+  results,
+  edu,
+  exams,
   at = new Date(),
 }: {
   attendance?: AttendanceSummary
   sessions: ClassSession[]
   complaints: Complaint[]
   deadlines: Deadline[]
+  fees?: FeeSummary
+  results?: ResultsSummary
+  edu?: EduProgress
+  exams?: ExamSchedule
   at?: Date
 }): Signal[] {
   const signals: Signal[] = []
@@ -86,6 +102,7 @@ export function buildSignals({
         title: running
           ? `${course?.short ?? 'Class'} is running now`
           : `${course?.short ?? 'Class'} starts ${countdown(until)}`,
+        metric: running ? 'Now' : countdown(until).replace('in ', ''),
         detail: `${next.session.block} · ${next.session.room} · ${formatTime(next.session.startTime)}`,
         urgency: running ? 80 : 100 - until,
         action: { label: 'View timetable', to: '/app/timetable' },
@@ -102,6 +119,7 @@ export function buildSignals({
       id: `sig_att_${row.courseId}`,
       tone: 'danger',
       title: `${course?.short ?? 'A course'} attendance is ${Math.round(row.percentage)}%`,
+      metric: `${Math.round(row.percentage)}%`,
       detail: `Below the ${row.requiredPercentage}% demo threshold. Attending the next ${row.mustAttend} brings it back.`,
       urgency: 95,
       action: { label: 'View attendance', to: '/app/attendance' },
@@ -120,6 +138,7 @@ export function buildSignals({
       id: `sig_risk_${row.courseId}`,
       tone: 'warn',
       title: `${course?.short ?? 'A course'} has no margin left`,
+      metric: `${Math.round(row.percentage)}%`,
       detail: `At ${Math.round(row.percentage)}%. One more absence drops it below ${row.requiredPercentage}%.`,
       urgency: 60,
       action: { label: 'View attendance', to: '/app/attendance' },
@@ -142,6 +161,7 @@ export function buildSignals({
       id: `sig_dln_${deadline.id}`,
       tone: isToday ? 'danger' : 'warn',
       title: `${deadlineKindLabel[deadline.kind]} due ${isToday ? countdown(minutes) : 'tomorrow'}`,
+      metric: isToday ? 'Today' : 'Tomorrow',
       detail: `${deadline.title} · ${course?.short ?? ''}`.trim(),
       urgency: isToday ? 92 : 70,
       action: { label: 'View timetable', to: '/app/timetable' },
@@ -156,6 +176,7 @@ export function buildSignals({
       id: `sig_cmp_${complaint.id}`,
       tone: 'warn',
       title: 'A request needs your confirmation',
+      metric: stageShortLabel[complaint.stage],
       detail: `${complaint.reference} · ${complaint.title}`,
       urgency: 75,
       action: { label: 'Review request', to: `/app/complaints/${complaint.id}` },
@@ -175,10 +196,117 @@ export function buildSignals({
       id: `sig_cmpupd_${complaint.id}`,
       tone: 'info',
       title: `${complaint.reference} was updated`,
+      metric: stageShortLabel[complaint.stage],
       detail: last?.description ?? complaint.title,
       urgency: 45,
       action: { label: 'Track request', to: `/app/complaints/${complaint.id}` },
       source: 'complaint',
+    })
+  }
+
+  /* ------------------------------------------------------- examinations */
+  const nextExam = exams?.next
+  if (nextExam) {
+    const days = daysUntil(nextExam.date, at)
+    const course = courseById.get(nextExam.courseId)
+
+    /* Three weeks is the point at which revision becomes a plan rather than a
+       worry, so that is when the exam starts appearing. */
+    if (days <= 21) {
+      const tone = examTone(nextExam, at)
+      signals.push({
+        id: `sig_exam_${nextExam.id}`,
+        tone,
+        title:
+          days === 0
+            ? `${course?.short ?? 'Exam'} ${examKindLabel[nextExam.kind].toLowerCase()} is today`
+            : `${course?.short ?? 'Exam'} ${examKindLabel[nextExam.kind].toLowerCase()} in ${days} ${days === 1 ? 'day' : 'days'}`,
+        /* The seat is the part a student cannot derive for themselves, so it
+           leads the detail whenever it exists. */
+        detail: nextExam.seat
+          ? `${formatTime(nextExam.startTime)} · ${nextExam.seat.block} · ${nextExam.seat.room} · Seat ${nextExam.seat.seat}`
+          : `${formatTime(nextExam.startTime)} · seat not released yet`,
+        metric: days === 0 ? 'Today' : `${days}d`,
+        urgency: days <= 1 ? 96 : days <= 7 ? 82 : 56,
+        action: { label: 'View exams', to: '/app/exams' },
+        source: 'exam',
+      })
+    }
+  }
+
+  /* ---------------------------------------------------------------- fees */
+  const nextPayment = fees?.nextDue
+  if (nextPayment) {
+    const days = daysUntil(nextPayment.dueDate, at)
+    /* Money is worth raising about three weeks out — early enough to arrange,
+       late enough not to become wallpaper. */
+    if (days <= 21) {
+      const overdue = days < 0
+      signals.push({
+        id: `sig_fee_${nextPayment.id}`,
+        tone: overdue ? 'danger' : days <= 7 ? 'warn' : 'info',
+        title: overdue
+          ? `${formatMoney(nextPayment.amount, fees.currency)} is overdue`
+          : `${formatMoney(nextPayment.amount, fees.currency)} due in ${days} ${days === 1 ? 'day' : 'days'}`,
+        detail: `${nextPayment.label} · demo fee record`,
+        metric: formatMoney(nextPayment.amount, fees.currency),
+        urgency: overdue ? 97 : days <= 7 ? 78 : 52,
+        action: { label: 'View fees', to: '/app/fees' },
+        source: 'fee',
+      })
+    }
+  }
+
+  /* ------------------------------------------------------------- results */
+  const latest = results?.latest
+  if (latest) {
+    const publishedHoursAgo = (at.getTime() - new Date(latest.publishedAt).getTime()) / 3_600_000
+    const course = courseById.get(latest.courseId)
+
+    // A mark published in the last few days is news; older than that it is not.
+    if (publishedHoursAgo <= 72) {
+      signals.push({
+        id: `sig_res_${latest.courseId}`,
+        tone: 'info',
+        title: `${course?.short ?? 'A course'} result published`,
+        detail: `Now at ${Math.round(latest.percentage)}% across assessed work`,
+        metric: `${Math.round(latest.percentage)}%`,
+        urgency: 58,
+        action: { label: 'View marks', to: '/app/academics' },
+        source: 'result',
+      })
+    }
+
+    /* A re-evaluation window is only worth raising where the mark is weak
+       enough to make applying rational — otherwise it is noise attached to
+       good news. */
+    const window = revaluationWindow(latest, at)
+    if (window.open && latest.percentage < 60) {
+      signals.push({
+        id: `sig_reval_${latest.courseId}`,
+        tone: 'warn',
+        title: `Re-evaluation closes in ${window.daysLeft} ${window.daysLeft === 1 ? 'day' : 'days'}`,
+        detail: `${course?.short ?? 'A course'} · ${Math.round(latest.percentage)}% · demo window`,
+        metric: `${window.daysLeft}d`,
+        urgency: 68,
+        action: { label: 'Review marks', to: '/app/academics' },
+        source: 'result',
+      })
+    }
+  }
+
+  /* ------------------------------------------------------ EDU-Revolution */
+  const nextActivity = edu?.nextRecommended
+  if (edu && nextActivity && edu.completed < edu.required) {
+    signals.push({
+      id: `sig_edu_${nextActivity.id}`,
+      tone: 'info',
+      title: `EDU-Revolution ${edu.completed}/${edu.required} complete`,
+      detail: `Next: ${nextActivity.title}`,
+      metric: `${edu.completed}/${edu.required}`,
+      urgency: 35,
+      action: { label: 'View progress', to: '/app/academics' },
+      source: 'edu',
     })
   }
 
@@ -199,12 +327,18 @@ export function buildInsights({
   sessions,
   complaints,
   deadlines,
+  fees,
+  edu,
+  exams,
   at = new Date(),
 }: {
   attendance?: AttendanceSummary
   sessions: ClassSession[]
   complaints: Complaint[]
   deadlines: Deadline[]
+  fees?: FeeSummary
+  edu?: EduProgress
+  exams?: ExamSchedule
   at?: Date
 }): Insight[] {
   const insights: Insight[] = []
@@ -258,6 +392,44 @@ export function buildInsights({
       label: 'Courses on track',
       value: `${safe} of ${attendance.courses.length}`,
       tone: safe === attendance.courses.length ? 'ok' : 'warn',
+      /* A proportion is the one kind of figure a bar reads faster than text. */
+      progress: (safe / Math.max(1, attendance.courses.length)) * 100,
+    })
+  }
+
+  /* Money and the co-curricular track belong in the snapshot even when nothing
+     is urgent about them — they are the two figures a student cannot see from
+     any other block on the dashboard. */
+  if (fees?.nextDue) {
+    const days = daysUntil(fees.nextDue.dueDate, at)
+    insights.push({
+      label: 'Next payment',
+      value: formatMoney(fees.nextDue.amount, fees.currency),
+      detail: days < 0 ? 'Overdue' : `in ${days} ${days === 1 ? 'day' : 'days'}`,
+      tone: days < 0 ? 'danger' : days <= 7 ? 'warn' : 'info',
+      /* How much of the semester's fee is settled — the figure that makes the
+         amount outstanding mean something. */
+      progress: fees.totalPayable > 0 ? (fees.totalPaid / fees.totalPayable) * 100 : 0,
+    })
+  }
+
+  if (exams?.next) {
+    const days = daysUntil(exams.next.date, at)
+    insights.push({
+      label: 'Next exam',
+      value: days === 0 ? 'Today' : `${days} ${days === 1 ? 'day' : 'days'}`,
+      detail: courseById.get(exams.next.courseId)?.short ?? undefined,
+      tone: days <= 1 ? 'danger' : days <= 7 ? 'warn' : 'info',
+    })
+  }
+
+  if (edu) {
+    insights.push({
+      label: 'EDU-Revolution',
+      value: `${edu.completed} of ${edu.required}`,
+      detail: edu.nextRecommended ? 'Next activity ready' : 'Complete',
+      tone: edu.completed >= edu.required ? 'ok' : 'info',
+      progress: (edu.completed / Math.max(1, edu.required)) * 100,
     })
   }
 
@@ -444,4 +616,53 @@ export function buildPulse({
   }
 
   return items.sort((a, b) => a.order - b.order)
+}
+
+/* ------------------------------------------------------- today's summary */
+
+/**
+ * The one-line answer to "what does today look like?".
+ *
+ * Every clause is counted from a real record, and a clause that would count
+ * zero is dropped rather than printed as "0 deadlines" — a summary listing
+ * things that are not happening is noise. When nothing at all is scheduled the
+ * caller gets an empty array and can say so in its own words.
+ */
+export function buildTodaySummary({
+  sessions,
+  deadlines,
+  complaints,
+  at = new Date(),
+}: {
+  /** Sessions already filtered to today. */
+  sessions: ClassSession[]
+  deadlines: Deadline[]
+  complaints: Complaint[]
+  at?: Date
+}): string[] {
+  const parts: string[] = []
+  const today = isoDate(at)
+  const tomorrow = isoDate(new Date(at.getTime() + 86_400_000))
+
+  if (sessions.length > 0) {
+    parts.push(`${sessions.length} ${sessions.length === 1 ? 'class' : 'classes'} today`)
+  }
+
+  const pending = deadlines.filter((deadline) => !deadline.submitted)
+  const dueToday = pending.filter((deadline) => deadline.date === today).length
+  const dueTomorrow = pending.filter((deadline) => deadline.date === tomorrow).length
+
+  if (dueToday > 0) {
+    parts.push(`${dueToday} ${dueToday === 1 ? 'deadline' : 'deadlines'} today`)
+  }
+  if (dueTomorrow > 0) {
+    parts.push(`${dueTomorrow} ${dueTomorrow === 1 ? 'deadline' : 'deadlines'} tomorrow`)
+  }
+
+  const open = complaints.filter((complaint) => complaint.stage !== 'resolved').length
+  if (open > 0) {
+    parts.push(`${open} active ${open === 1 ? 'request' : 'requests'}`)
+  }
+
+  return parts
 }

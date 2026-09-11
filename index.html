@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" style="background-color: #080b12">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -18,6 +18,30 @@
     />
 
     <title>CampusOS — Your campus. One intelligent system.</title>
+
+    <!--
+      Paint the dark canvas before React mounts.
+
+      Without this the first frame is the light canvas and the whole product
+      flashes white on load, which is exactly the impression the dark
+      environment exists to avoid. Mirrors the default in src/app/theme.tsx;
+      a stored preference still wins.
+    -->
+    <script>
+      ;(function () {
+        try {
+          var stored = localStorage.getItem('campusos.theme')
+          var dark =
+            stored === 'dark' ||
+            (stored === null && true) ||
+            (stored === 'system' &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches)
+          if (dark) document.documentElement.classList.add('dark')
+        } catch (e) {
+          document.documentElement.classList.add('dark')
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

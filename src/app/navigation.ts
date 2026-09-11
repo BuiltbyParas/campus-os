@@ -1,12 +1,15 @@
 import {
   CalendarDays,
   CalendarRange,
+  FileText,
+  GraduationCap,
   LayoutDashboard,
   MessageSquareWarning,
   ScanLine,
   Settings,
   Sparkles,
   User,
+  Wallet,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -20,14 +23,21 @@ export interface NavItem {
 }
 
 /**
- * The desktop sidebar — the eight MVP surfaces and nothing else.
- * A destination only appears here once the screen behind it is real.
+ * The desktop sidebar.
+ *
+ * A destination only appears here once the screen behind it is real, and
+ * related records share a destination rather than each claiming a row:
+ * `Academics` carries marks, re-evaluation and EDU-Revolution together,
+ * because a student reads them as one question rather than three.
  */
 export const primaryNav: NavItem[] = [
   { to: '/app', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/app/assistant', label: 'AI Assistant', shortLabel: 'Assistant', icon: Sparkles },
   { to: '/app/attendance', label: 'Attendance', icon: ScanLine },
   { to: '/app/timetable', label: 'Timetable', icon: CalendarDays },
+  { to: '/app/academics', label: 'Academics', icon: GraduationCap },
+  { to: '/app/exams', label: 'Examinations', shortLabel: 'Exams', icon: FileText },
+  { to: '/app/fees', label: 'Fees', icon: Wallet },
   { to: '/app/complaints', label: 'Complaints', icon: MessageSquareWarning },
   { to: '/app/events', label: 'Events', icon: CalendarRange },
 ]

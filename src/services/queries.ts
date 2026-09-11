@@ -2,13 +2,18 @@ import { useQuery } from '@tanstack/react-query'
 
 import {
   getAttendance,
+  getResults,
   getStudent,
   listCourses,
   listSessions,
 } from './academics'
 import { getEvent, listEvents, listNotifications, type EventFilters } from './campus'
 import { getComplaint, listComplaints, type ComplaintFilters } from './complaints'
+import { getEduProgress } from './campusLife'
+import { getExams } from './examinations'
+import { getFees } from './finance'
 import { listAnnouncements, listDeadlines } from './signals'
+import { composeToday } from './today'
 
 /** One place to see every cache key in the app. */
 export const keys = {
@@ -23,6 +28,10 @@ export const keys = {
   notifications: ['notifications'] as const,
   deadlines: ['deadlines'] as const,
   announcements: ['announcements'] as const,
+  results: ['results'] as const,
+  fees: ['fees'] as const,
+  edu: ['edu-revolution'] as const,
+  exams: ['examinations'] as const,
 }
 
 export function useStudent() {
@@ -73,6 +82,22 @@ export function useAnnouncements() {
   return useQuery({ queryKey: keys.announcements, queryFn: listAnnouncements })
 }
 
+export function useResults() {
+  return useQuery({ queryKey: keys.results, queryFn: getResults })
+}
+
+export function useFees() {
+  return useQuery({ queryKey: keys.fees, queryFn: getFees })
+}
+
+export function useEduProgress() {
+  return useQuery({ queryKey: keys.edu, queryFn: getEduProgress })
+}
+
+export function useExams() {
+  return useQuery({ queryKey: keys.exams, queryFn: getExams })
+}
+
 /**
  * Everything the Today view reasons over, in one hook.
  *
@@ -91,6 +116,55 @@ export function useCampusContext() {
     timetable,
     complaints,
     deadlines,
+    isPending:
+      attendance.isPending || timetable.isPending || complaints.isPending || deadlines.isPending,
+    isError: attendance.isError || timetable.isError,
+  }
+}
+
+/**
+ * The Today view model.
+ *
+ * Composed here from the individual queries rather than by calling
+ * `getToday()`, so each block on the dashboard can still show its own skeleton
+ * while the others load — one aggregate query would mean one page-wide spinner.
+ * The *derivation* is `composeToday`, which lives in the service layer and is
+ * the same function the real `/today` endpoint will replace.
+ *
+ * When the backend ships that endpoint, this becomes a single `useQuery` over
+ * `getToday()` and nothing in `Dashboard.tsx` changes.
+ */
+export function useToday(at: Date) {
+  const attendance = useAttendance()
+  const timetable = useTimetable()
+  const complaints = useComplaints({ status: 'all' })
+  const deadlines = useDeadlines()
+  const events = useEvents()
+  const announcements = useAnnouncements()
+  const fees = useFees()
+  const results = useResults()
+  const edu = useEduProgress()
+  const exams = useExams()
+
+  const view = composeToday({
+    attendance: attendance.data,
+    timetable: timetable.data ?? [],
+    complaints: complaints.data ?? [],
+    deadlines: deadlines.data ?? [],
+    events: events.data ?? [],
+    notices: announcements.data ?? [],
+    fees: fees.data,
+    results: results.data,
+    edu: edu.data,
+    exams: exams.data,
+    at,
+  })
+
+  return {
+    view,
+    /* The underlying queries come back too, so each block can render its own
+       skeleton or retry instead of the page sharing one state. */
+    queries: { attendance, timetable, complaints, deadlines, events, announcements, fees, results, edu, exams },
     isPending:
       attendance.isPending || timetable.isPending || complaints.isPending || deadlines.isPending,
     isError: attendance.isError || timetable.isError,
