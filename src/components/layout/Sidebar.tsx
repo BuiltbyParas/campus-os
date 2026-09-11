@@ -1,3 +1,4 @@
+import { Search } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 
 import { accountNav, primaryNav, type NavItem } from '@/app/navigation'
@@ -47,7 +48,7 @@ function SidebarLink({ item }: { item: NavItem }) {
  * Desktop navigation. A fixed glass rail rather than a solid panel, so the
  * ambient colour of the page reads faintly through it as you scroll.
  */
-export function Sidebar() {
+export function Sidebar({ onOpenCommandPalette }: { onOpenCommandPalette: () => void }) {
   const { student } = useStore()
 
   return (
@@ -56,6 +57,20 @@ export function Sidebar() {
         <NavLink to="/app" end className="mb-7 inline-flex rounded-lg px-1" aria-label="CampusOS dashboard">
           <Logo />
         </NavLink>
+
+        {/* The command palette is the fastest route to anything, so it sits
+            above the navigation rather than hidden behind a shortcut. */}
+        <button
+          type="button"
+          onClick={onOpenCommandPalette}
+          className="press mb-4 flex w-full items-center gap-2.5 rounded-control border border-line bg-surface/60 px-3 py-2.5 text-left text-[13.5px] text-ink-subtle transition-colors hover:border-line-strong hover:text-ink-muted"
+        >
+          <Search className="size-4 shrink-0" aria-hidden />
+          <span className="flex-1 truncate">Search or jump to…</span>
+          <kbd className="shrink-0 rounded border border-line px-1.5 py-0.5 text-[10.5px] font-medium">
+            ⌘K
+          </kbd>
+        </button>
 
         <nav aria-label="Primary" className="flex flex-col gap-1">
           {primaryNav.map((item) => (

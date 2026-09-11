@@ -21,7 +21,12 @@ import {
   priorityLabel,
 } from '@/data'
 import { cn } from '@/lib/utils'
-import { createComplaint, suggestCategory } from '@/services/complaints'
+import {
+  classifyPhoto,
+  createComplaint,
+  suggestCategory,
+  type PhotoClassification,
+} from '@/services/complaints'
 import type { Complaint, ComplaintCategory, ComplaintPriority } from '@/types'
 
 const categories = Object.keys(categoryLabel) as ComplaintCategory[]
@@ -77,6 +82,8 @@ export default function ReportIssue() {
   const [block, setBlock] = useState(student.hostel)
   const [room, setRoom] = useState(student.room)
 
+  const [classifying, setClassifying] = useState(false)
+  const [vision, setVision] = useState<PhotoClassification | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -101,8 +108,10 @@ export default function ReportIssue() {
   const effectiveCategory = category ?? (suggestion.confident ? suggestion.category : null)
   const usingSuggestion = category === null && suggestion.confident
 
-  function handleFiles(event: ChangeEvent<HTMLInputElement>) {
+  async function handleFiles(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []).slice(0, MAX_PHOTOS - photos.length)
+    // Reset so picking the same file twice still fires a change event.
+    event.target.value = ''
     if (files.length === 0) return
 
     setPhotos((prev) => [
@@ -114,15 +123,34 @@ export default function ReportIssue() {
       })),
     ])
 
-    // Reset so picking the same file twice still fires a change event.
-    event.target.value = ''
+    /* The first photo is what gets classified. Later photos are evidence for
+       the technician, not a reason to re-open a decision the student made. */
+    if (photos.length > 0 || vision) return
+
+    setClassifying(true)
+    try {
+      const result = await classifyPhoto(files[0].name)
+      setVision(result)
+      // A confident read pre-fills; a weak one leaves the choice alone.
+      if (result.confidence >= 0.6) {
+        setCategory(result.category)
+        setPriority(result.suggestedPriority)
+      }
+    } catch {
+      setVision(null)
+    } finally {
+      setClassifying(false)
+    }
   }
 
   function removePhoto(id: string) {
     setPhotos((prev) => {
       const photo = prev.find((entry) => entry.id === id)
       if (photo) URL.revokeObjectURL(photo.url)
-      return prev.filter((entry) => entry.id !== id)
+      const next = prev.filter((entry) => entry.id !== id)
+      // Removing every photo retires the classification it produced.
+      if (next.length === 0) setVision(null)
+      return next
     })
   }
 
@@ -317,11 +345,88 @@ export default function ReportIssue() {
             className="sr-only"
             aria-label="Choose photos"
           />
+
+          {/* -------------------------------------------- classification */}
+          {classifying ? (
+            <div
+              className="mt-4 flex items-center gap-2.5 rounded-tile border border-line bg-surface-raised px-3.5 py-3"
+              role="status"
+            >
+              <Loader2 className="size-4 shrink-0 animate-spin text-brand-ink" aria-hidden />
+              <p className="text-[13px] text-ink-muted">Looking at your photo…</p>
+            </div>
+          ) : vision ? (
+            <div
+              className={cn(
+                'mt-4 rounded-tile border px-3.5 py-3.5',
+                vision.confidence >= 0.6
+                  ? 'border-brand-border/40 bg-brand-soft'
+                  : 'border-line bg-surface-raised',
+              )}
+            >
+              <div className="flex items-start gap-2.5">
+                <Sparkles className="mt-0.5 size-4 shrink-0 text-brand-ink" aria-hidden />
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-[13px] font-medium text-ink">
+                      {vision.confidence >= 0.6 ? 'CampusOS sees' : 'Not sure what this shows'}
+                    </p>
+                    <span className="rounded-full bg-surface/70 px-2 py-0.5 text-[10.5px] font-medium tabular-nums text-ink-muted">
+                      {Math.round(vision.confidence * 100)}% confident
+                    </span>
+                  </div>
+
+                  <p className="mt-1.5 text-[13px] leading-relaxed text-ink-muted">
+                    {vision.observed}.{' '}
+                    {vision.confidence >= 0.6 ? (
+                      <>
+                        Suggested category{' '}
+                        <span className="font-medium text-ink">
+                          {categoryShortLabel[vision.category]}
+                        </span>{' '}
+                        and{' '}
+                        <span className="font-medium text-ink">
+                          {priorityLabel[vision.suggestedPriority].toLowerCase()}
+                        </span>{' '}
+                        priority — check both below before submitting.
+                      </>
+                    ) : (
+                      'Pick the category yourself below.'
+                    )}
+                  </p>
+
+                  {/* Confidence is shown as a bar as well as a number: a weak
+                      read should look weak, not just read as a smaller figure. */}
+                  <div className="mt-2.5 h-1 w-full max-w-[180px] overflow-hidden rounded-full bg-canvas">
+                    <div
+                      className={cn(
+                        'h-full rounded-full transition-[width] duration-700',
+                        vision.confidence >= 0.6 ? 'bg-brand' : 'bg-warn',
+                      )}
+                      style={{ width: `${Math.round(vision.confidence * 100)}%` }}
+                    />
+                  </div>
+
+                  <p className="mt-2.5 text-[11.5px] text-ink-subtle">
+                    Demo classifier — a placeholder for an image model. Nothing is submitted until
+                    you confirm.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : null}
         </Step>
 
         {/* --------------------------------------------------- 3. category */}
         <Step index={3} title="Category">
-          {suggestion.confident ? (
+          {vision && vision.confidence >= 0.6 && category === vision.category ? (
+            <div className="mb-4 flex items-start gap-2.5 rounded-tile border border-brand-border/40 bg-brand-soft px-3.5 py-3">
+              <Sparkles className="mt-0.5 size-4 shrink-0 text-brand-ink" aria-hidden />
+              <p className="text-[13px] leading-relaxed text-ink-muted">
+                Set from your photo. Change it below if that is wrong.
+              </p>
+            </div>
+          ) : suggestion.confident ? (
             <div
               className={cn(
                 'mb-4 flex items-start gap-2.5 rounded-tile border px-3.5 py-3',

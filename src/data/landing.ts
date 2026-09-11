@@ -26,17 +26,17 @@ export interface NavLink {
 
 export const landingNav: NavLink[] = [
   { label: 'Platform', href: '#platform' },
-  { label: 'Features', href: '#features' },
+  { label: 'Assistant', href: '#assistant' },
   { label: 'How it works', href: '#how-it-works' },
 ]
 
 export const hero = {
-  eyebrow: 'THE DIGITAL CAMPUS, REIMAGINED',
+  eyebrow: 'THE INTELLIGENT CAMPUS LAYER',
   headline: ['Your campus.', 'One intelligent system.'],
   subtitle:
-    'One place for everything students need — from attendance and timetables to campus services and AI-powered assistance.',
+    'CampusOS brings your academic life, campus services and everyday information together — then uses context and AI to help you act on it.',
   primaryCta: { label: 'Enter CampusOS', to: '/app' },
-  secondaryCta: { label: 'Explore the experience', href: '#platform' },
+  secondaryCta: { label: 'Explore CampusOS', href: '#problem' },
 }
 
 /* -------------------------------------------------------------- platform */
@@ -88,72 +88,6 @@ export const modules: Module[] = [
     name: 'Profile & settings',
     description: 'Identity, course list and notification preferences in one place.',
     icon: Settings2,
-  },
-]
-
-/* -------------------------------------------------------------- features */
-
-/**
- * The three MVP capabilities, each shown with the real demo record the product
- * would display. `caption` is the label above the sample, so the page never
- * implies these are live institutional figures.
- */
-export interface Feature {
-  eyebrow: string
-  title: string
-  description: string
-  sample: {
-    primary: string
-    secondary: string
-    meta?: string
-    tone: 'danger' | 'warn' | 'brand'
-    statusLabel: string
-  }
-  action: { label: string; to: string }
-}
-
-export const features: Feature[] = [
-  {
-    eyebrow: 'Attendance',
-    title: 'Know where you stand, not just what you missed',
-    description:
-      'Every course shows its percentage against the requirement, and what it would take to recover.',
-    sample: {
-      primary: '72%',
-      secondary: 'Overall attendance',
-      meta: 'Database Management Systems is the weak point',
-      tone: 'danger',
-      statusLabel: 'Below required attendance',
-    },
-    action: { label: 'View attendance', to: '/app/attendance' },
-  },
-  {
-    eyebrow: 'Report an issue',
-    title: 'Requests that do not disappear',
-    description:
-      'Report a problem with a photo, then watch it move through every stage until it is closed.',
-    sample: {
-      primary: 'Hostel AC not working',
-      secondary: 'Hostel 23 · Room 204',
-      meta: 'Technician assigned · updated 4 hours ago',
-      tone: 'warn',
-      statusLabel: 'In Progress',
-    },
-    action: { label: 'Track complaint', to: '/app/complaints' },
-  },
-  {
-    eyebrow: 'Timetable',
-    title: 'The next place you need to be',
-    description:
-      'Your week, with today prioritised and the class running right now highlighted as you look.',
-    sample: {
-      primary: 'Database Management Systems',
-      secondary: '10:00 AM · Block 34 · Room 204',
-      meta: 'Dr. Neha Kulkarni',
-      tone: 'brand',
-      statusLabel: 'Next class',
-    },
-    action: { label: 'View timetable', to: '/app/timetable' },
   },
 ]
 
@@ -234,18 +168,19 @@ export const footerLinks: { heading: string; links: NavLink[] }[] = [
   {
     heading: 'Platform',
     links: [
-      { label: 'Dashboard', href: '#platform' },
-      { label: 'Attendance', href: '#features' },
-      { label: 'Timetable', href: '#features' },
-      { label: 'Complaints', href: '#features' },
+      { label: 'Your day', href: '#your-day' },
+      { label: 'Attendance', href: '#platform' },
+      { label: 'Timetable', href: '#platform' },
+      { label: 'Complaints', href: '#complaints' },
     ],
   },
   {
     heading: 'Product',
     links: [
-      { label: 'Features', href: '#features' },
+      { label: 'The problem', href: '#problem' },
+      { label: 'AI Assistant', href: '#assistant' },
+      { label: 'Campus pulse', href: '#pulse' },
       { label: 'How it works', href: '#how-it-works' },
-      { label: 'AI Assistant', href: '#platform' },
     ],
   },
 ]

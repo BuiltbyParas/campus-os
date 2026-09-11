@@ -1,6 +1,11 @@
 import { categoryKeywords, complaints, complaintStages, stageLabel } from '@/data'
 import { uid } from '@/lib/utils'
-import type { Complaint, ComplaintCategory, ComplaintDraft } from '@/types'
+import type {
+  Complaint,
+  ComplaintCategory,
+  ComplaintDraft,
+  ComplaintPriority,
+} from '@/types'
 
 import { mutate, request } from './http'
 
@@ -64,6 +69,96 @@ export function suggestCategory(text: string): {
 
   if (!best) return { category: 'other', confident: false, matched: null }
   return { category: best.category, confident: true, matched: best.keyword }
+}
+
+/* ------------------------------------------------- photo classification */
+
+export interface PhotoClassification {
+  category: ComplaintCategory
+  /** 0–1. Shown to the student so a weak guess reads as a weak guess. */
+  confidence: number
+  /** What the classifier believes it saw, in plain words. */
+  observed: string
+  suggestedPriority: ComplaintPriority
+}
+
+/**
+ * Classifies an uploaded photo.
+ *
+ * This is a *stub for a vision model*, and the UI says so. It is deliberately
+ * structured exactly like the real call will be — an async request that returns
+ * a category, a confidence and a description — so wiring a real model later
+ * means replacing the body of this function and nothing else.
+ *
+ * The demo derives its guess from the filename, which is honest about being a
+ * placeholder while still letting the flow be evaluated end to end. Crucially
+ * the result is always a *suggestion the student confirms*, never an automatic
+ * decision: an unconfirmed classification never reaches a submitted request.
+ */
+export function classifyPhoto(fileName: string): Promise<PhotoClassification> {
+  return mutate('/complaints/classify', { fileName }, () => {
+    const name = fileName.toLowerCase()
+
+    const rules: { match: string[]; result: PhotoClassification }[] = [
+      {
+        match: ['ac', 'air', 'cool', 'hvac', 'conditioner'],
+        result: {
+          category: 'hvac',
+          confidence: 0.92,
+          observed: 'A wall-mounted air conditioning unit',
+          suggestedPriority: 'medium',
+        },
+      },
+      {
+        match: ['light', 'bulb', 'tube', 'socket', 'switch', 'wire'],
+        result: {
+          category: 'electrical',
+          confidence: 0.88,
+          observed: 'A ceiling light fitting',
+          suggestedPriority: 'low',
+        },
+      },
+      {
+        match: ['tap', 'water', 'leak', 'pipe', 'sink', 'drain'],
+        result: {
+          category: 'plumbing',
+          confidence: 0.9,
+          observed: 'Water pooling near a fitting',
+          suggestedPriority: 'high',
+        },
+      },
+      {
+        match: ['wifi', 'router', 'lan', 'cable', 'network'],
+        result: {
+          category: 'internet',
+          confidence: 0.85,
+          observed: 'Network equipment',
+          suggestedPriority: 'medium',
+        },
+      },
+      {
+        match: ['chair', 'desk', 'table', 'bed', 'door', 'window'],
+        result: {
+          category: 'furniture',
+          confidence: 0.83,
+          observed: 'Damaged furniture',
+          suggestedPriority: 'low',
+        },
+      },
+    ]
+
+    const hit = rules.find((rule) => rule.match.some((token) => name.includes(token)))
+    if (hit) return hit.result
+
+    /* No confident read. Saying so is better than guessing — a low-confidence
+       result tells the student to pick the category themselves. */
+    return {
+      category: 'other',
+      confidence: 0.34,
+      observed: 'Could not identify the equipment clearly',
+      suggestedPriority: 'medium',
+    }
+  })
 }
 
 let nextReference = 1048

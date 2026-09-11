@@ -7,7 +7,7 @@
 export const assistantSuggestions = [
   'Can I skip tomorrow’s DBMS class?',
   'How is my attendance looking?',
-  'What’s my next class?',
+  'What does my day look like?',
+  'What coursework is due?',
   'Any update on my AC complaint?',
-  'What’s happening on campus this week?',
 ]

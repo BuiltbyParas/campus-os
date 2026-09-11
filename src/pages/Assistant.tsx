@@ -98,15 +98,20 @@ function Bubble({ message }: { message: ChatMessage }) {
 
         <div className="min-w-0 flex-1 rounded-2xl rounded-tl-md border border-line bg-surface p-4">
           {message.pending ? (
-            <span className="flex gap-1.5 py-1" aria-label="Thinking">
-              {[0, 1, 2].map((i) => (
-                <span
-                  key={i}
-                  className="size-1.5 animate-pulse rounded-full bg-ink-subtle"
-                  style={{ animationDelay: `${i * 140}ms` }}
-                />
-              ))}
-            </span>
+            <div aria-label="Checking your records">
+              <p className="text-[13px] text-ink-muted">Checking your records…</p>
+              <ul className="mt-2.5 flex flex-wrap gap-1.5">
+                {['Attendance', 'Timetable', 'Coursework', 'Requests'].map((source, i) => (
+                  <li
+                    key={source}
+                    className="animate-pulse rounded border border-line px-1.5 py-0.5 text-[10.5px] font-medium text-ink-subtle"
+                    style={{ animationDelay: `${i * 120}ms` }}
+                  >
+                    {source}
+                  </li>
+                ))}
+              </ul>
+            </div>
           ) : (
             <>
               <p className="text-[14.5px] leading-relaxed text-ink">{message.content}</p>

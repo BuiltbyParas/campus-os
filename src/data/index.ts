@@ -32,5 +32,6 @@ export {
   blocks,
 } from './complaints'
 export { events, eventById, eventCategoryLabel } from './events'
+export { deadlines, deadlineKindLabel } from './deadlines'
 export { notifications } from './notifications'
 export { assistantSuggestions } from './assistant'

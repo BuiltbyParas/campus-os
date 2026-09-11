@@ -1,6 +1,6 @@
 import { courseById, courses, stageLabel, weekdayLabel, weekdayShort } from '@/data'
 import { classesCanMiss, classesMustAttend, percentage } from '@/lib/attendance'
-import { formatTime, uid } from '@/lib/utils'
+import { formatDateLabel, formatTime, uid } from '@/lib/utils'
 import type {
   AssistantDataPoint,
   AssistantSource,
@@ -10,11 +10,19 @@ import type {
   CampusEvent,
   ClassSession,
   Course,
+  Deadline,
 } from '@/types'
 
-import { getAttendance, listSessions, sessionsForDay, findNextSession } from './academics'
+import {
+  findNextSession,
+  getAttendance,
+  listSessions,
+  sessionsForDay,
+  weekdayFromDate,
+} from './academics'
 import { listEvents, listNotifications } from './campus'
 import { listComplaints } from './complaints'
+import { listDeadlines } from './signals'
 
 /**
  * The CampusOS assistant.
@@ -38,10 +46,21 @@ const ROUND = (value: number) => Math.round(value)
 
 /* ------------------------------------------------------------------ intent */
 
-type Intent = 'skip' | 'attendance' | 'next-class' | 'complaints' | 'events' | 'unknown'
+type Intent =
+  | 'skip'
+  | 'attendance'
+  | 'next-class'
+  | 'complaints'
+  | 'events'
+  | 'deadlines'
+  | 'day'
+  | 'unknown'
 
 function detectIntent(text: string): Intent {
   if (/\b(skip|miss|bunk|leave out|not attend|not go)\b/.test(text)) return 'skip'
+  if (/\b(deadline|due|assignment|submission|coursework|homework|quiz)\b/.test(text))
+    return 'deadlines'
+  if (/\b(my day|today|what'?s on|whats on|agenda|plan)\b/.test(text)) return 'day'
   if (/\b(attendance|percentage|shortage|short of|how many classes)\b/.test(text)) return 'attendance'
   if (/\b(next class|what'?s next|whats next|today'?s classes|timetable|schedule|lecture)\b/.test(text))
     return 'next-class'
@@ -374,10 +393,100 @@ function answerEvents(events: CampusEvent[]): Omit<ChatMessage, 'id' | 'role'> {
   }
 }
 
+function answerDeadlines(
+  deadlines: Deadline[],
+  at: Date,
+): Omit<ChatMessage, 'id' | 'role'> {
+  const pending = deadlines
+    .filter((deadline) => !deadline.submitted)
+    .sort((a, b) => `${a.date}${a.dueTime}`.localeCompare(`${b.date}${b.dueTime}`))
+
+  if (pending.length === 0) {
+    return {
+      content: 'Nothing is outstanding — every piece of coursework is submitted.',
+      sources: [
+        { kind: 'policy', label: 'Your coursework', detail: 'Nothing pending', source: 'demo' },
+      ],
+    }
+  }
+
+  const today = at.toISOString().slice(0, 10)
+  const next = pending[0]
+  const course = courseById.get(next.courseId)
+  const dueToday = next.date === today
+
+  return {
+    content: `You have ${pending.length} ${pending.length === 1 ? 'item' : 'items'} outstanding. The next is ${next.title} for ${course?.short ?? 'a course'}, due ${dueToday ? `today at ${formatTime(next.dueTime)}` : formatDateLabel(next.date).toLowerCase()}.`,
+    data: pending.slice(0, 4).map((deadline) => ({
+      label: courseById.get(deadline.courseId)?.short ?? 'Course',
+      value: formatDateLabel(deadline.date),
+      tone: deadline.date === today ? ('danger' as const) : ('neutral' as const),
+    })),
+    sources: [
+      {
+        kind: 'policy',
+        label: 'Your coursework',
+        detail: `${pending.length} pending across your courses`,
+        source: 'demo',
+      },
+    ],
+    actions: [{ label: 'Open timetable', to: '/app/timetable' }],
+  }
+}
+
+function answerDay(
+  sessions: ClassSession[],
+  deadlines: Deadline[],
+  at: Date,
+): Omit<ChatMessage, 'id' | 'role'> {
+  const today = weekdayFromDate(at)
+  const todaySessions = today ? sessionsForDay(sessions, today) : []
+  const isoToday = at.toISOString().slice(0, 10)
+  const dueToday = deadlines.filter(
+    (deadline) => deadline.date === isoToday && !deadline.submitted,
+  )
+
+  const next = findNextSession(sessions, at)
+  const remaining = todaySessions.filter((session) => session.status !== 'completed').length
+
+  const parts: string[] = []
+  parts.push(
+    todaySessions.length === 0
+      ? 'You have no classes today'
+      : `You have ${todaySessions.length} ${todaySessions.length === 1 ? 'class' : 'classes'} today${remaining !== todaySessions.length ? `, ${remaining} still to come` : ''}`,
+  )
+  if (dueToday.length > 0) {
+    parts.push(
+      `${dueToday.length} ${dueToday.length === 1 ? 'deadline is' : 'deadlines are'} due today`,
+    )
+  }
+  if (next?.isToday) {
+    const course = courseById.get(next.session.courseId)
+    parts.push(
+      `next up is ${course?.short ?? 'a class'} at ${formatTime(next.session.startTime)} in ${next.session.block} · ${next.session.room}`,
+    )
+  }
+
+  return {
+    content: `${parts.join(', and ')}.`,
+    data: [
+      { label: 'Classes', value: String(todaySessions.length) },
+      {
+        label: 'Due today',
+        value: String(dueToday.length),
+        tone: dueToday.length > 0 ? 'warn' : 'neutral',
+      },
+      ...(next?.isToday ? [{ label: 'Next', value: formatTime(next.session.startTime) }] : []),
+    ],
+    sources: [timetableSource(next?.session ?? null)],
+    actions: [{ label: 'Open Today', to: '/app' }],
+  }
+}
+
 function answerUnknown(): Omit<ChatMessage, 'id' | 'role'> {
   return {
     content:
-      'I can answer questions about your attendance, your timetable, the requests you have filed, and what is happening on campus. Try asking whether you can skip a specific class.',
+      'I can answer questions about your attendance, your timetable, your coursework deadlines, the requests you have filed, and what is happening on campus. Try asking whether you can skip a specific class.',
   }
 }
 
@@ -410,6 +519,15 @@ export async function ask(question: string): Promise<ChatMessage> {
     }
     case 'events': {
       body = answerEvents(await listEvents())
+      break
+    }
+    case 'deadlines': {
+      body = answerDeadlines(await listDeadlines(), new Date())
+      break
+    }
+    case 'day': {
+      const [sessions, deadlines] = await Promise.all([listSessions(), listDeadlines()])
+      body = answerDay(sessions, deadlines, new Date())
       break
     }
     default:

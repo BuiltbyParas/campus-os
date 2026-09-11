@@ -8,6 +8,7 @@ import {
 } from './academics'
 import { getEvent, listEvents, listNotifications, type EventFilters } from './campus'
 import { getComplaint, listComplaints, type ComplaintFilters } from './complaints'
+import { listDeadlines } from './signals'
 
 /** One place to see every cache key in the app. */
 export const keys = {
@@ -20,6 +21,7 @@ export const keys = {
   events: (filters: EventFilters = {}) => ['events', filters] as const,
   event: (id: string) => ['event', id] as const,
   notifications: ['notifications'] as const,
+  deadlines: ['deadlines'] as const,
 }
 
 export function useStudent() {
@@ -60,4 +62,32 @@ export function useEvent(id: string) {
 
 export function useNotifications() {
   return useQuery({ queryKey: keys.notifications, queryFn: listNotifications })
+}
+
+export function useDeadlines() {
+  return useQuery({ queryKey: keys.deadlines, queryFn: listDeadlines })
+}
+
+/**
+ * Everything the Today view reasons over, in one hook.
+ *
+ * The dashboard, the command palette and the assistant all need the same four
+ * datasets; fetching them together keeps their answers consistent and avoids
+ * four separate loading states racing each other on screen.
+ */
+export function useCampusContext() {
+  const attendance = useAttendance()
+  const timetable = useTimetable()
+  const complaints = useComplaints({ status: 'all' })
+  const deadlines = useDeadlines()
+
+  return {
+    attendance,
+    timetable,
+    complaints,
+    deadlines,
+    isPending:
+      attendance.isPending || timetable.isPending || complaints.isPending || deadlines.isPending,
+    isError: attendance.isError || timetable.isError,
+  }
 }

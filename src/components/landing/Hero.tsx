@@ -7,6 +7,7 @@ import { easeOutSoft } from '@/lib/motion'
 
 import { DashboardPreview } from './DashboardPreview'
 import { FloatingBadges } from './FloatingBadges'
+import { IntelligenceCore } from './IntelligenceCore'
 import { Container, Glow } from './primitives'
 
 export function Hero() {
@@ -85,6 +86,23 @@ export function Hero() {
           </motion.div>
         </div>
 
+        {/* ------------------------------------------------ intelligence core */}
+        <motion.div
+          {...(reduced
+            ? {}
+            : {
+                initial: { opacity: 0, scale: 0.94 },
+                animate: { opacity: 1, scale: 1 },
+                transition: { duration: 0.9, ease: easeOutSoft, delay: 0.3 },
+              })}
+          className="mt-10 sm:mt-14"
+        >
+          <IntelligenceCore />
+          <p className="mx-auto mt-2 max-w-sm text-center text-[12.5px] text-ink-subtle">
+            Five campus services, one intelligent layer.
+          </p>
+        </motion.div>
+
         {/* -------------------------------------------------- product preview */}
         <motion.div
           {...(reduced
@@ -94,7 +112,7 @@ export function Hero() {
                 animate: { opacity: 1, y: 0 },
                 transition: { duration: 0.8, ease: easeOutSoft, delay: 0.34 },
               })}
-          className="relative mx-auto mt-16 max-w-[960px] sm:mt-20"
+          className="relative mx-auto mt-14 max-w-[960px] sm:mt-16"
         >
           {/* light pooled behind the glass */}
           <Glow

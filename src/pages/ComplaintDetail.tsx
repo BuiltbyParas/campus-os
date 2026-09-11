@@ -1,4 +1,5 @@
-import { ArrowLeft, Check, MapPin, Paperclip, Sparkles, User } from 'lucide-react'
+import { ArrowLeft, Check, Loader2, MapPin, Paperclip, Sparkles, User } from 'lucide-react'
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import { ComplaintTracker } from '@/components/app/ComplaintTracker'
@@ -7,12 +8,33 @@ import { Badge } from '@/components/ui/Badge'
 import { Skeleton, SkeletonRows } from '@/components/ui/Skeleton'
 import { EmptyState, ErrorState } from '@/components/ui/States'
 import { categoryLabel, priorityLabel, stageLabel } from '@/data'
+import { useToast } from '@/components/ui/Toast'
 import { formatRelative } from '@/lib/utils'
 import { useComplaint } from '@/services/queries'
 
 export default function ComplaintDetail() {
   const { id = '' } = useParams()
   const complaint = useComplaint(id)
+  const toast = useToast()
+
+  /* The verification step is the one place the student closes the loop, so it
+     has to actually do something. There is no backend yet, so the outcome is
+     held locally and the UI says plainly that it was recorded for the demo. */
+  const [verdict, setVerdict] = useState<'confirmed' | 'reopened' | null>(null)
+  const [submitting, setSubmitting] = useState<'confirmed' | 'reopened' | null>(null)
+
+  function respond(next: 'confirmed' | 'reopened') {
+    setSubmitting(next)
+    window.setTimeout(() => {
+      setSubmitting(null)
+      setVerdict(next)
+      if (next === 'confirmed') {
+        toast.success('Marked as fixed', 'Thanks — this request is now closed.')
+      } else {
+        toast.info('Reopened', 'Campus services will take another look.')
+      }
+    }, 600)
+  }
 
   if (complaint.isPending) {
     return (
@@ -139,22 +161,43 @@ export default function ComplaintDetail() {
           {data.timeline[data.timeline.length - 1]?.description}
         </p>
 
-        {awaitingStudent ? (
+        {awaitingStudent && !verdict ? (
           <div className="mt-4 flex flex-col gap-2.5 sm:flex-row">
             <button
               type="button"
-              className="press inline-flex h-10 items-center justify-center gap-2 rounded-control bg-brand px-4 text-[13.5px] font-medium text-on-brand hover:bg-brand-hover"
+              onClick={() => respond('confirmed')}
+              disabled={submitting !== null}
+              className="press inline-flex h-10 items-center justify-center gap-2 rounded-control bg-brand px-4 text-[13.5px] font-medium text-on-brand hover:bg-brand-hover disabled:pointer-events-none disabled:opacity-60"
             >
-              <Check className="size-4" aria-hidden />
+              {submitting === 'confirmed' ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden />
+              ) : (
+                <Check className="size-4" aria-hidden />
+              )}
               Confirm it’s fixed
             </button>
             <button
               type="button"
-              className="press inline-flex h-10 items-center justify-center rounded-control border border-line bg-surface px-4 text-[13.5px] font-medium text-ink hover:border-line-strong"
+              onClick={() => respond('reopened')}
+              disabled={submitting !== null}
+              className="press inline-flex h-10 items-center justify-center gap-2 rounded-control border border-line bg-surface px-4 text-[13.5px] font-medium text-ink hover:border-line-strong disabled:pointer-events-none disabled:opacity-60"
             >
+              {submitting === 'reopened' ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden />
+              ) : null}
               Still a problem
             </button>
           </div>
+        ) : verdict ? (
+          <p
+            className="mt-4 inline-flex items-center gap-2 rounded-control border border-line bg-surface px-3 py-2 text-[13px] text-ink-muted"
+            role="status"
+          >
+            <Check className="size-4 shrink-0 text-ok" aria-hidden />
+            {verdict === 'confirmed'
+              ? 'You confirmed this is fixed. Recorded for the demo only.'
+              : 'You reported this is still a problem. Recorded for the demo only.'}
+          </p>
         ) : null}
       </section>
 

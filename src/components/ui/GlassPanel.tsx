@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils'
  *           above it stays legible no matter what scrolls behind
  *   `panel` toolbars, composers, floating controls
  *   `thin`  small chips where the environment should read through strongly
+ *   `modal` dialogs, which carry the reading task and so take the densest veil
  */
 export function GlassPanel<T extends ElementType = 'div'>({
   as,
@@ -24,7 +25,7 @@ export function GlassPanel<T extends ElementType = 'div'>({
   ...props
 }: {
   as?: T
-  weight?: 'nav' | 'panel' | 'thin'
+  weight?: 'nav' | 'panel' | 'thin' | 'modal'
   className?: string
   children?: ReactNode
 } & Omit<ComponentProps<T>, 'as' | 'className' | 'children'>) {
@@ -33,6 +34,7 @@ export function GlassPanel<T extends ElementType = 'div'>({
     nav: 'glass-nav',
     panel: 'glass',
     thin: 'glass-thin',
+    modal: 'glass-modal',
   }
 
   return (

@@ -2,6 +2,8 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { useEffect } from 'react'
 import { Outlet, ScrollRestoration, useLocation } from 'react-router-dom'
 
+import { CommandPalette } from '@/components/app/CommandPalette'
+import { useCommandPalette } from '@/hooks/useCommandPalette'
 import { pageTransition } from '@/lib/motion'
 
 import { AssistantLauncher } from './AssistantLauncher'
@@ -20,6 +22,7 @@ function useScrollToTopOnNavigate() {
 export function AppShell() {
   const location = useLocation()
   const reduced = useReducedMotion()
+  const palette = useCommandPalette()
   useScrollToTopOnNavigate()
 
   return (
@@ -38,8 +41,8 @@ export function AppShell() {
         Skip to content
       </a>
 
-      <Sidebar />
-      <MobileHeader />
+      <Sidebar onOpenCommandPalette={palette.toggle} />
+      <MobileHeader onOpenCommandPalette={palette.toggle} />
 
       <div className="relative lg:pl-[248px]">
         <DemoModeBanner />
@@ -60,6 +63,7 @@ export function AppShell() {
 
       <AssistantLauncher />
       <BottomNav />
+      <CommandPalette open={palette.open} onClose={palette.close} />
       <ScrollRestoration />
     </div>
   )

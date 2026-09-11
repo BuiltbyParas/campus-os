@@ -1,4 +1,4 @@
-import { Bell } from 'lucide-react'
+import { Bell, Search } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { useStore } from '@/app/store'
@@ -10,7 +10,7 @@ import { Logo } from './Logo'
  * Compact mobile header: identity and alerts only. Navigation lives in the tab
  * bar at the bottom, within thumb reach — the header is not a second menu.
  */
-export function MobileHeader() {
+export function MobileHeader({ onOpenCommandPalette }: { onOpenCommandPalette: () => void }) {
   const { student, readNotificationIds } = useStore()
   const notifications = useNotifications()
 
@@ -26,6 +26,15 @@ export function MobileHeader() {
         </Link>
 
         <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={onOpenCommandPalette}
+            className="grid size-10 place-items-center rounded-full text-ink-muted transition-colors hover:bg-surface hover:text-ink"
+            aria-label="Search CampusOS"
+          >
+            <Search className="size-[19px]" aria-hidden />
+          </button>
+
           <Link
             to="/app/notifications"
             className="relative grid size-10 place-items-center rounded-full text-ink-muted transition-colors hover:bg-surface hover:text-ink"

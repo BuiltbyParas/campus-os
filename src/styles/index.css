@@ -273,10 +273,20 @@
 
   .glass,
   .glass-nav,
-  .glass-thin {
+  .glass-thin,
+  .glass-modal {
     backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
     border: 1px solid var(--glass-edge);
+  }
+
+  /* A modal carries the reading task itself, so it takes the densest veil of
+     the family: the material should still be felt, but never compete with the
+     text sitting on it. */
+  .glass-modal {
+    background-color: color-mix(in oklab, var(--surface) 92%, transparent);
+    --glass-blur: 28px;
+    box-shadow: inset 0 1px 0 0 var(--glass-sheen), 0 32px 70px -24px oklch(0 0 0 / 0.9);
   }
 
   .glass {
@@ -303,7 +313,8 @@
   ) {
     .glass,
     .glass-nav,
-    .glass-thin {
+    .glass-thin,
+    .glass-modal {
       background-color: var(--surface);
     }
   }
@@ -394,6 +405,34 @@
   }
   50% {
     transform: translateY(-8px);
+  }
+}
+
+/* Data travelling inward along a connector, then arriving at the core. */
+@keyframes core-pulse {
+  0% {
+    left: 100%;
+    opacity: 0;
+  }
+  15%,
+  70% {
+    opacity: 1;
+  }
+  100% {
+    left: 0%;
+    opacity: 0;
+  }
+}
+
+@keyframes core-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.06);
   }
 }
 

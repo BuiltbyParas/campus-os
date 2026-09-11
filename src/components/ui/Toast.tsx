@@ -28,6 +28,8 @@ interface ToastContextValue {
   toast: (toast: Omit<Toast, 'id'>) => void
   success: (title: string, description?: string) => void
   error: (title: string, description?: string) => void
+  /** Neutral acknowledgement — the tone was already supported internally. */
+  info: (title: string, description?: string) => void
 }
 
 const ToastContext = createContext<ToastContextValue | null>(null)
@@ -78,6 +80,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       toast,
       success: (title, description) => toast({ tone: 'success', title, description }),
       error: (title, description) => toast({ tone: 'error', title, description }),
+      info: (title, description) => toast({ tone: 'info', title, description }),
     }),
     [toast],
   )

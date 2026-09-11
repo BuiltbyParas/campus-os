@@ -243,3 +243,94 @@ export interface AppPreferences {
   compactTimetable: boolean
   showDemoLabels: boolean
 }
+
+/* ------------------------------------------------------------- Deadlines */
+
+export type DeadlineKind = 'assignment' | 'quiz' | 'submission' | 'exam'
+
+export interface Deadline {
+  id: Id
+  courseId: Id
+  title: string
+  kind: DeadlineKind
+  /** ISO date, e.g. 2026-09-15 */
+  date: string
+  /** 24h local time the work is due. */
+  dueTime: string
+  submitted: boolean
+}
+
+/* ----------------------------------------------------------- Day agenda */
+
+/**
+ * One entry in the student's merged day.
+ *
+ * Classes, deadlines, events and the gaps between them are different records in
+ * different services, but a student experiences them as a single chronological
+ * day. `lib/agenda` merges them into this shape so the Today view can render one
+ * timeline instead of three stacked lists.
+ */
+export type AgendaKind = 'class' | 'deadline' | 'event' | 'gap'
+
+export interface AgendaItem {
+  id: Id
+  kind: AgendaKind
+  /** 24h local time used for ordering. */
+  startTime: string
+  endTime?: string
+  title: string
+  subtitle?: string
+  /** Minutes from "now" until it starts. Negative once it has begun. */
+  minutesUntil: number
+  status: 'past' | 'now' | 'next' | 'upcoming'
+  to?: string
+}
+
+/* -------------------------------------------------------------- Signals */
+
+/**
+ * A proactive prompt: something CampusOS noticed on the student's behalf.
+ *
+ * Signals are *derived*, never authored — each one is produced by a rule that
+ * reads real records, so the interface can never nag about something untrue.
+ * `urgency` orders them; only the top few are ever shown.
+ */
+export type SignalTone = 'info' | 'ok' | 'warn' | 'danger'
+
+export interface Signal {
+  id: Id
+  tone: SignalTone
+  title: string
+  detail: string
+  /** Higher sorts first. Derived from how soon and how consequential it is. */
+  urgency: number
+  action?: { label: string; to: string }
+  source: 'attendance' | 'timetable' | 'complaint' | 'deadline' | 'event'
+}
+
+/* ------------------------------------------------------------- Insights */
+
+/** A small derived observation about the student's own week. */
+export interface Insight {
+  label: string
+  value: string
+  detail?: string
+  tone?: SignalTone
+}
+
+/* ------------------------------------------------------- Command palette */
+
+export type CommandKind = 'action' | 'info' | 'navigation' | 'assistant'
+
+export interface CommandItem {
+  id: Id
+  kind: CommandKind
+  title: string
+  subtitle?: string
+  /** Extra words this entry should match on, beyond its title. */
+  keywords?: string[]
+  to: string
+  /** Shown on the right — a live value such as "72%". */
+  badge?: string
+  badgeTone?: SignalTone
+}

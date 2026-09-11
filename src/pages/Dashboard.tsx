@@ -1,55 +1,34 @@
-import {
-  ArrowUpRight,
-  Bell,
-  CalendarDays,
-  CalendarRange,
-  MessageSquareWarning,
-  ScanLine,
-  Sparkles,
-} from 'lucide-react'
+import { ArrowUpRight, CalendarDays, MessageSquareWarning, ScanLine, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { useStore } from '@/app/store'
-import { AttendanceRow } from '@/components/app/AttendanceRow'
 import { AttendanceStrip } from '@/components/app/AttendanceStrip'
-import { NextClass } from '@/components/app/NextClass'
-import { SessionRow } from '@/components/app/SessionRow'
+import { InsightRow } from '@/components/app/InsightRow'
+import { SignalStack } from '@/components/app/SignalStack'
+import { TodayTimeline } from '@/components/app/TodayTimeline'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { DemoTag } from '@/components/ui/DemoTag'
 import { GlassPanel } from '@/components/ui/GlassPanel'
 import { ProgressRing } from '@/components/ui/ProgressRing'
 import { Skeleton, SkeletonRows } from '@/components/ui/Skeleton'
 import { ErrorState } from '@/components/ui/States'
-import { assistantSuggestions, stageShortLabel } from '@/data'
+import { assistantSuggestions, courseById } from '@/data'
+import { buildDayAgenda } from '@/lib/agenda'
 import { attendanceStatusTone } from '@/lib/attendance'
-import { cn, formatRelative, greeting } from '@/lib/utils'
-import {
-  findNextSession,
-  sessionsForDay,
-  weekdayFromDate,
-  withStatus,
-} from '@/services/academics'
-import { useAttendance, useComplaints, useNotifications, useTimetable } from '@/services/queries'
+import { greeting } from '@/lib/utils'
+import { sessionsForDay, weekdayFromDate, withStatus } from '@/services/academics'
+import { useCampusContext, useEvents } from '@/services/queries'
+import { buildInsights, buildSignals } from '@/services/signals'
 
 function firstName(name: string) {
   return name.split(' ')[0]
 }
 
-function minutesBetween(startTime: string, at: Date) {
-  const [hours, minutes] = startTime.split(':').map(Number)
-  const start = new Date(at)
-  start.setHours(hours, minutes, 0, 0)
-  return (start.getTime() - at.getTime()) / 60_000
-}
-
-/* --------------------------------------------------------------- sections */
-
-/** Four destinations a student reaches for most often. */
+/** Reached for often enough to earn a permanent place. */
 const quickActions = [
   { to: '/app/complaints/new', label: 'Report an issue', icon: MessageSquareWarning },
   { to: '/app/attendance', label: 'Attendance', icon: ScanLine },
   { to: '/app/timetable', label: 'Timetable', icon: CalendarDays },
-  { to: '/app/events', label: 'Events', icon: CalendarRange },
 ]
 
 function SectionTitle({
@@ -74,193 +53,97 @@ function SectionTitle({
   )
 }
 
+/**
+ * Today.
+ *
+ * The screen answers one question — "what do I need right now?" — so it is
+ * ordered by urgency rather than by department: what CampusOS noticed, then the
+ * shape of the day, then the standing figures. Nothing here is a link to a
+ * university service; everything is already the answer.
+ */
 export default function Dashboard() {
-  const { student, readNotificationIds } = useStore()
-
-  const timetable = useTimetable()
-  const attendance = useAttendance()
-  const complaints = useComplaints({ status: 'open' })
-  const notifications = useNotifications()
+  const { student } = useStore()
+  const { attendance, timetable, complaints, deadlines, isPending } = useCampusContext()
+  const events = useEvents()
 
   const now = new Date()
   const today = weekdayFromDate(now)
+  const isoToday = now.toISOString().slice(0, 10)
 
   const sessions = withStatus(timetable.data ?? [], now)
   const todaySessions = today ? sessionsForDay(sessions, today) : []
-  const next = findNextSession(sessions, now)
+
+  const agenda = buildDayAgenda({
+    sessions: todaySessions,
+    deadlines: deadlines.data ?? [],
+    events: events.data ?? [],
+    isoDate: isoToday,
+    at: now,
+  })
+
+  const signals = buildSignals({
+    attendance: attendance.data,
+    sessions,
+    complaints: complaints.data ?? [],
+    deadlines: deadlines.data ?? [],
+    at: now,
+  })
+
+  const insights = buildInsights({
+    attendance: attendance.data,
+    sessions,
+    complaints: complaints.data ?? [],
+    deadlines: deadlines.data ?? [],
+    at: now,
+  })
 
   const summary = attendance.data
   const weakest = summary
     ? [...summary.courses].sort((a, b) => a.percentage - b.percentage)[0]
     : undefined
 
-  const unread = (notifications.data ?? []).filter(
-    (item) => !item.read && !readNotificationIds.includes(item.id),
-  )
-
   return (
-    <PageContainer className="space-y-7">
+    <PageContainer className="space-y-6">
       {/* ------------------------------------------------------------ header */}
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-[13px] font-medium text-ink-subtle">
-            {now.toLocaleDateString(undefined, {
-              weekday: 'long',
-              day: 'numeric',
-              month: 'long',
-            })}
-          </p>
-          <h1 className="mt-1 text-[26px] font-semibold tracking-tight text-ink sm:text-[32px]">
-            {greeting(now)}, {firstName(student.name)}
-          </h1>
-        </div>
-
-        <Link
-          to="/app/notifications"
-          className="press hidden items-center gap-2 rounded-control border border-line bg-surface px-3.5 py-2.5 text-[13.5px] font-medium text-ink-muted hover:border-line-strong hover:text-ink lg:inline-flex"
-        >
-          <Bell className="size-4" aria-hidden />
-          {unread.length > 0 ? `${unread.length} new` : 'Notifications'}
-          {unread.length > 0 ? (
-            <span aria-hidden className="size-1.5 rounded-full bg-brand" />
-          ) : null}
-        </Link>
+      <header>
+        <p className="text-[13px] font-medium text-ink-subtle">
+          {now.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}
+        </p>
+        <h1 className="mt-1 text-[26px] font-semibold tracking-tight text-ink sm:text-[32px]">
+          {greeting(now)}, {firstName(student.name)}
+        </h1>
       </header>
 
-      <div className="grid gap-5 lg:grid-cols-[1.55fr_1fr] lg:gap-6">
-        {/* ------------------------------------------------------ left column */}
-        {/* min-w-0: grid items default to min-width:auto, which would let a wide
-            row (a class with a long faculty name) push the whole column past the
-            viewport on a narrow screen. */}
-        <div className="min-w-0 space-y-5 lg:space-y-6">
-          {timetable.isPending ? (
-            <Skeleton className="h-[232px] w-full rounded-card" />
-          ) : timetable.isError ? (
-            <ErrorState onRetry={() => timetable.refetch()} />
-          ) : next ? (
-            <NextClass
-              session={next.session}
-              day={next.day}
-              isToday={next.isToday}
-              minutesUntil={minutesBetween(next.session.startTime, now)}
-            />
-          ) : (
-            <section className="rounded-card border border-line bg-surface p-6">
-              <h2 className="text-[17px] font-semibold text-ink">No classes scheduled</h2>
-              <p className="mt-1.5 text-[14px] text-ink-muted">
-                Your timetable is clear for the rest of the week.
-              </p>
-            </section>
-          )}
+      {/* ----------------------------------------------------------- signals */}
+      {isPending ? (
+        <Skeleton className="h-[76px] w-full rounded-card" />
+      ) : (
+        <SignalStack signals={signals} />
+      )}
 
+      <div className="grid gap-5 lg:grid-cols-[1.55fr_1fr] lg:gap-6">
+        {/* --------------------------------------------------- your day */}
+        <div className="min-w-0 space-y-5 lg:space-y-6">
           {summary ? <AttendanceStrip summary={summary} className="lg:hidden" /> : null}
 
-          {/* today's schedule */}
           <section>
             <SectionTitle action={{ label: 'Full week', to: '/app/timetable' }}>
-              Today’s classes
+              Your day
             </SectionTitle>
-            <div className="rounded-card border border-line bg-surface p-2">
+            <div className="rounded-card border border-line bg-surface py-2 pr-2">
               {timetable.isPending ? (
-                <SkeletonRows className="p-3" />
-              ) : todaySessions.length === 0 ? (
-                <p className="px-3 py-8 text-center text-[13.5px] text-ink-muted">
-                  Nothing scheduled today.
-                </p>
+                <SkeletonRows className="p-4" />
+              ) : timetable.isError ? (
+                <ErrorState className="m-3" onRetry={() => timetable.refetch()} />
               ) : (
-                <ul>
-                  {todaySessions.map((session) => (
-                    <SessionRow
-                      key={session.id}
-                      session={session}
-                      isNext={session.id === next?.session.id}
-                    />
-                  ))}
-                </ul>
+                <TodayTimeline items={agenda} />
               )}
             </div>
           </section>
 
-          {/* open requests */}
-          <section>
-            <SectionTitle action={{ label: 'All requests', to: '/app/complaints' }}>
-              Open requests
-            </SectionTitle>
-
-            {complaints.isPending ? (
-              <div className="rounded-card border border-line bg-surface p-5">
-                <SkeletonRows count={2} />
-              </div>
-            ) : (complaints.data ?? []).length === 0 ? (
-              <div className="rounded-card border border-dashed border-line bg-surface/50 px-5 py-8 text-center">
-                <p className="text-[14px] font-medium text-ink">Nothing outstanding</p>
-                <p className="mt-1 text-[13px] text-ink-muted">
-                  Anything you report will show up here with its status.
-                </p>
-                <Link
-                  to="/app/complaints/new"
-                  className="mt-4 inline-flex text-[13px] font-medium text-brand-ink hover:text-ink"
-                >
-                  Report an issue
-                </Link>
-              </div>
-            ) : (
-              <ul className="divide-y divide-line overflow-hidden rounded-card border border-line bg-surface">
-                {(complaints.data ?? []).slice(0, 3).map((complaint) => {
-                  const lastEntry = complaint.timeline[complaint.timeline.length - 1]
-                  return (
-                    <li key={complaint.id}>
-                      <Link
-                        to={`/app/complaints/${complaint.id}`}
-                        className="group flex items-start gap-3 px-4 py-3.5 transition-colors hover:bg-surface-raised"
-                      >
-                        <span
-                          aria-hidden
-                          className={cn(
-                            'mt-1.5 size-1.5 shrink-0 rounded-full',
-                            complaint.stage === 'verification' ? 'bg-warn' : 'bg-brand',
-                          )}
-                        />
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-[14px] font-medium text-ink">
-                            {complaint.title}
-                          </p>
-                          <p className="mt-0.5 truncate text-[12.5px] text-ink-subtle">
-                            {complaint.reference} · {stageShortLabel[complaint.stage]} ·{' '}
-                            {formatRelative(lastEntry.timestamp)}
-                          </p>
-                        </div>
-                        <ArrowUpRight
-                          className="mt-0.5 size-4 shrink-0 text-ink-subtle transition-transform group-hover:translate-x-0.5"
-                          aria-hidden
-                        />
-                      </Link>
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
-          </section>
-
-          {/* quick actions — left column keeps the two columns in balance */}
-          <section>
-            <SectionTitle>Quick actions</SectionTitle>
-            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-              {quickActions.map((action) => (
-                <Link
-                  key={action.label}
-                  to={action.to}
-                  className="press flex flex-col gap-2.5 rounded-tile border border-line bg-surface p-3.5 hover:border-line-strong"
-                >
-                  <action.icon className="size-[18px] text-ink-subtle" aria-hidden />
-                  <span className="text-[13px] font-medium text-ink">{action.label}</span>
-                </Link>
-              ))}
-            </div>
-          </section>
         </div>
 
-        {/* ----------------------------------------------------- right column */}
+        {/* ------------------------------------------------------ right rail */}
         <div className="min-w-0 space-y-5 lg:space-y-6">
           {/* attendance — the strip above replaces this below `lg` */}
           <section className="hidden rounded-card border border-line bg-surface p-5 lg:block">
@@ -293,10 +176,21 @@ export default function Dashboard() {
 
                 {weakest ? (
                   <div className="mt-5 border-t border-line pt-4">
-                    <p className="mb-1 text-[12px] font-medium uppercase tracking-[0.1em] text-ink-subtle">
-                      Needs attention
+                    <p className="text-[12px] font-medium uppercase tracking-[0.1em] text-ink-subtle">
+                      Weakest course
                     </p>
-                    <AttendanceRow attendance={weakest} className="pb-0" />
+                    <p className="mt-2 truncate text-[14px] font-medium text-ink">
+                      {courseById.get(weakest.courseId)?.name ?? 'Course'}
+                    </p>
+                    <p className="mt-0.5 text-[13px] tabular-nums text-ink-muted">
+                      {Math.round(weakest.percentage)}% · {weakest.attended} of {weakest.held}{' '}
+                      attended
+                    </p>
+                    <p className="mt-1.5 text-[12.5px] text-ink-muted">
+                      {weakest.status === 'below'
+                        ? `Attend the next ${weakest.mustAttend} to reach ${weakest.requiredPercentage}%`
+                        : `You can miss ${weakest.canMiss} more`}
+                    </p>
                   </div>
                 ) : null}
 
@@ -311,15 +205,15 @@ export default function Dashboard() {
             )}
           </section>
 
-          {/* assistant entry point — a floating control, so it gets the glass */}
+          {/* assistant — a floating control, so it gets the glass */}
           <GlassPanel className="rounded-card p-5">
             <div className="flex items-center gap-2">
               <Sparkles className="size-[18px] text-brand-ink" aria-hidden />
-              <h2 className="text-[15px] font-semibold tracking-tight text-ink">AI Assistant</h2>
+              <h2 className="text-[15px] font-semibold tracking-tight text-ink">Ask CampusOS</h2>
             </div>
             <p className="mt-2 text-[13.5px] leading-relaxed text-ink-muted">
-              Ask about your attendance, timetable or open requests — answers come from your own
-              campus records.
+              It reads your timetable, attendance and requests before answering — and shows you
+              which records it used.
             </p>
 
             <ul className="mt-4 space-y-2">
@@ -343,8 +237,35 @@ export default function Dashboard() {
             </Link>
           </GlassPanel>
 
+          <section>
+            <SectionTitle>Quick actions</SectionTitle>
+            <div className="grid grid-cols-3 gap-2.5">
+              {quickActions.map((action) => (
+                <Link
+                  key={action.label}
+                  to={action.to}
+                  className="press flex flex-col gap-2.5 rounded-tile border border-line bg-surface p-3.5 hover:border-line-strong"
+                >
+                  <action.icon className="size-[18px] text-ink-subtle" aria-hidden />
+                  <span className="text-[12.5px] font-medium leading-snug text-ink">
+                    {action.label}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </section>
         </div>
       </div>
+
+      {/* ---------------------------------------------------------- insights */}
+      <section>
+        <SectionTitle>At a glance</SectionTitle>
+        {isPending ? (
+          <Skeleton className="h-[84px] w-full rounded-card" />
+        ) : (
+          <InsightRow insights={insights} />
+        )}
+      </section>
     </PageContainer>
   )
 }
