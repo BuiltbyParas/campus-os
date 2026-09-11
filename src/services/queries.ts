@@ -8,7 +8,10 @@ import {
 } from './academics'
 import { getEvent, listEvents, listNotifications, type EventFilters } from './campus'
 import { getComplaint, listComplaints, type ComplaintFilters } from './complaints'
+import { getResults } from './results'
 import { listAnnouncements, listDeadlines } from './signals'
+import { getExamSchedule } from './examinations'
+import { getFees } from './fees'
 
 /** One place to see every cache key in the app. */
 export const keys = {
@@ -23,6 +26,9 @@ export const keys = {
   notifications: ['notifications'] as const,
   deadlines: ['deadlines'] as const,
   announcements: ['announcements'] as const,
+  results: ['results'] as const,
+  fees: ['fees'] as const,
+  examSchedule: ['examSchedule'] as const,
 }
 
 export function useStudent() {
@@ -71,6 +77,18 @@ export function useDeadlines() {
 
 export function useAnnouncements() {
   return useQuery({ queryKey: keys.announcements, queryFn: listAnnouncements })
+}
+
+export function useResults() {
+  return useQuery({ queryKey: keys.results, queryFn: getResults })
+}
+
+export function useExamSchedule() {
+  return useQuery({ queryKey: keys.examSchedule, queryFn: getExamSchedule })
+}
+
+export function useFees() {
+  return useQuery({ queryKey: keys.fees, queryFn: getFees })
 }
 
 /**

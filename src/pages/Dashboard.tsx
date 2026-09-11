@@ -5,6 +5,7 @@ import { useStore } from '@/app/store'
 import { AttendanceStrip } from '@/components/app/AttendanceStrip'
 import { CampusPulse } from '@/components/app/CampusPulse'
 import { InsightRow } from '@/components/app/InsightRow'
+import { MiniAssistant } from '@/components/app/MiniAssistant'
 import { NowNext } from '@/components/app/NowNext'
 import { SignalStack } from '@/components/app/SignalStack'
 import { SmartActions } from '@/components/app/SmartActions'
@@ -18,6 +19,7 @@ import { ErrorState } from '@/components/ui/States'
 import { assistantSuggestions, courseById, stageShortLabel, toLocalIsoDate } from '@/data'
 import { buildDayAgenda } from '@/lib/agenda'
 import { attendanceStatusTone } from '@/lib/attendance'
+import { buildContextLine } from '@/lib/greetingBuilder'
 import { cn, formatRelative, greeting } from '@/lib/utils'
 import { sessionsForDay, weekdayFromDate, withStatus } from '@/services/academics'
 import { useAnnouncements, useCampusContext, useEvents } from '@/services/queries'
@@ -120,6 +122,11 @@ export default function Dashboard() {
         <h1 className="mt-1 text-[26px] font-semibold tracking-tight text-ink sm:text-[32px]">
           {greeting(now)}, {firstName(student.name)}
         </h1>
+        {!isPending ? (
+          <p className="mt-1.5 text-[14px] leading-relaxed text-ink-muted">
+            {buildContextLine(context)}
+          </p>
+        ) : null}
       </header>
 
       {/* --------------------------------------------------------- now / next */}

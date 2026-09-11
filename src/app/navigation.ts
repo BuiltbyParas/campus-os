@@ -1,6 +1,10 @@
 import {
+  Activity,
+  BarChart3,
   CalendarDays,
   CalendarRange,
+  FileText,
+  IndianRupee,
   LayoutDashboard,
   MessageSquareWarning,
   ScanLine,
@@ -20,7 +24,7 @@ export interface NavItem {
 }
 
 /**
- * The desktop sidebar — the eight MVP surfaces and nothing else.
+ * The desktop sidebar — core academic and campus surfaces.
  * A destination only appears here once the screen behind it is real.
  */
 export const primaryNav: NavItem[] = [
@@ -28,8 +32,12 @@ export const primaryNav: NavItem[] = [
   { to: '/app/assistant', label: 'AI Assistant', shortLabel: 'Assistant', icon: Sparkles },
   { to: '/app/attendance', label: 'Attendance', icon: ScanLine },
   { to: '/app/timetable', label: 'Timetable', icon: CalendarDays },
+  { to: '/app/examinations', label: 'Examinations', icon: FileText },
+  { to: '/app/results', label: 'Results', icon: BarChart3 },
+  { to: '/app/fees', label: 'Fees', icon: IndianRupee },
   { to: '/app/complaints', label: 'Complaints', icon: MessageSquareWarning },
   { to: '/app/events', label: 'Events', icon: CalendarRange },
+  { to: '/app/pulse', label: 'Campus Pulse', shortLabel: 'Pulse', icon: Activity },
 ]
 
 /** Account destinations, separated from the day-to-day work above. */
