@@ -1,0 +1,90 @@
+.enterprise-theme {
+  /* PART 1: DESIGN FOUNDATION - COLOR PALETTE */
+  --bg-primary: #0f1419;
+  --bg-secondary: #1a1f2e;
+  --bg-card: #252d3d;
+  /* Using gradients for backgrounds where needed, defining colors here */
+  
+  --accent-primary: #6366f1;
+  --accent-secondary: #8b5cf6;
+  
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+  
+  --text-primary: #ffffff;
+  --text-secondary: #a0aec0;
+  --text-tertiary: #64748b;
+  --text-muted: #475569;
+  
+  --border-default: rgba(99, 102, 241, 0.1);
+  --border-hover: rgba(99, 102, 241, 0.4);
+  --border-active: rgba(99, 102, 241, 0.8);
+  --divider: rgba(255, 255, 255, 0.05);
+
+  /* Overriding standard variables used by the current app, but scoped to .enterprise-theme */
+  --canvas: var(--bg-primary);
+  --surface: var(--bg-secondary);
+  --surface-raised: var(--bg-card);
+  
+  --ink: var(--text-primary);
+  --ink-muted: var(--text-secondary);
+  --ink-subtle: var(--text-tertiary);
+  
+  --line: var(--border-default);
+  --brand: var(--accent-primary);
+  --on-brand: #ffffff;
+  
+  --danger: var(--color-error);
+  --warn: var(--color-warning);
+  --ok: var(--color-success);
+
+  /* SHADOW SYSTEM */
+  --shadow-elevation-0: none;
+  --shadow-elevation-1: 0 2px 8px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08);
+  --shadow-elevation-2: 0 8px 24px rgba(0,0,0,0.20), 0 4px 8px rgba(0,0,0,0.12);
+  --shadow-elevation-3: 0 16px 40px rgba(0,0,0,0.30), 0 8px 16px rgba(0,0,0,0.16);
+  --shadow-glow-sm: 0 0 8px rgba(99,102,241,0.2);
+  --shadow-glow-md: 0 0 12px rgba(99,102,241,0.3);
+  --shadow-glow-lg: 0 0 16px rgba(99,102,241,0.4);
+
+  /* ANIMATIONS */
+  --anim-fast: 150ms ease-in-out;
+  --anim-standard: 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  --anim-slow: 300ms ease-in-out;
+  --anim-smooth: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* TYPOGRAPHY SYSTEM Classes */
+.enterprise-theme .display-xl { font-size: 40px; font-weight: 700; letter-spacing: -0.5px; }
+.enterprise-theme .display-l { font-size: 36px; font-weight: 700; letter-spacing: -0.5px; }
+.enterprise-theme .headline-xl { font-size: 28px; font-weight: 700; letter-spacing: -0.25px; }
+.enterprise-theme .headline-l { font-size: 24px; font-weight: 700; letter-spacing: 0px; }
+.enterprise-theme .headline-m { font-size: 20px; font-weight: 600; letter-spacing: 0px; }
+.enterprise-theme .headline-s { font-size: 18px; font-weight: 600; letter-spacing: 0px; }
+.enterprise-theme .body-l { font-size: 16px; font-weight: 400; line-height: 1.6; }
+.enterprise-theme .body-m { font-size: 15px; font-weight: 400; line-height: 1.6; }
+.enterprise-theme .body-s { font-size: 14px; font-weight: 400; line-height: 1.5; }
+.enterprise-theme .label-l { font-size: 13px; font-weight: 600; line-height: 1.5; }
+.enterprise-theme .label-m { font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+.enterprise-theme .label-s { font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+.enterprise-theme .caption-text { font-size: 10px; font-weight: 400; color: var(--text-tertiary); }
+
+/* SPACING SCALE Utilities */
+/* BORDER RADIUS */
+/* Will be handled by standard Tailwind classes with some custom configs if necessary */
+
+/* TRANSITIONS */
+.enterprise-theme .hover-lift { transition: transform 200ms, box-shadow 200ms; }
+.enterprise-theme .hover-lift:hover { transform: translateY(-4px); box-shadow: var(--shadow-elevation-2); }
+.enterprise-theme .hover-glow { transition: box-shadow 200ms; }
+.enterprise-theme .hover-glow:hover { box-shadow: var(--shadow-glow-md); }
+.enterprise-theme .hover-scale { transition: transform 200ms; }
+.enterprise-theme .hover-scale:hover { transform: scale(1.02); }
+.enterprise-theme .click-feedback:active { transform: scale(0.98); transition: transform 100ms; }
+.enterprise-theme .focus-ring:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 4px; }

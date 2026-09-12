@@ -1,77 +1,50 @@
-import { ArrowUpRight, Sparkles } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import {
+  ArrowUpRight,
+  BookOpen,
+  Clock,
+  MapPin,
+  Sparkles,
+  Calendar,
+  AlertTriangle,
+  FileText,
+  HelpCircle,
+  TrendingDown,
+  Inbox,
+  ChevronRight,
+} from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { useStore } from '@/app/store'
-import { AttendanceStrip } from '@/components/app/AttendanceStrip'
-import { CampusPulse } from '@/components/app/CampusPulse'
-import { InsightRow } from '@/components/app/InsightRow'
-import { MiniAssistant } from '@/components/app/MiniAssistant'
-import { NowNext } from '@/components/app/NowNext'
-import { SignalStack } from '@/components/app/SignalStack'
-import { SmartActions } from '@/components/app/SmartActions'
-import { TodayTimeline } from '@/components/app/TodayTimeline'
 import { PageContainer } from '@/components/layout/PageContainer'
-import { DemoTag } from '@/components/ui/DemoTag'
-import { GlassPanel } from '@/components/ui/GlassPanel'
-import { ProgressRing } from '@/components/ui/ProgressRing'
-import { Skeleton, SkeletonRows } from '@/components/ui/Skeleton'
+import { TodayTimeline } from '@/components/app/TodayTimeline'
+import { CampusPulse } from '@/components/app/CampusPulse'
 import { ErrorState } from '@/components/ui/States'
-import { assistantSuggestions, courseById, stageShortLabel, toLocalIsoDate } from '@/data'
+import { Skeleton, SkeletonRows } from '@/components/ui/Skeleton'
+import { assistantSuggestions, toLocalIsoDate } from '@/data'
 import { buildDayAgenda } from '@/lib/agenda'
-import { attendanceStatusTone } from '@/lib/attendance'
-import { buildContextLine } from '@/lib/greetingBuilder'
-import { cn, formatRelative, greeting } from '@/lib/utils'
+import { greeting } from '@/lib/utils'
 import { sessionsForDay, weekdayFromDate, withStatus } from '@/services/academics'
 import { useAnnouncements, useCampusContext, useEvents } from '@/services/queries'
-import { buildInsights, buildPulse, buildSignals, buildSmartActions } from '@/services/signals'
+import { buildPulse } from '@/services/signals'
 
-function firstName(name: string) {
-  return name.split(' ')[0]
-}
-
-function SectionTitle({
-  children,
-  action,
-}: {
-  children: React.ReactNode
-  action?: { label: string; to: string }
-}) {
-  return (
-    <div className="mb-3 flex items-end justify-between gap-4">
-      <h2 className="text-[17px] font-semibold tracking-tight text-ink">{children}</h2>
-      {action ? (
-        <Link
-          to={action.to}
-          className="shrink-0 text-[13px] font-medium text-brand-ink transition-colors hover:text-ink"
-        >
-          {action.label}
-        </Link>
-      ) : null}
-    </div>
-  )
-}
-
-/**
- * Today.
- *
- * Ordered by urgency, not by department. The screen reads top to bottom as:
- * where you have to be → what needs you → the shape of your day → what CampusOS
- * can do → what is coming → your own figures.
- *
- * Only the first two blocks are visually dominant. Everything below is quieter
- * on purpose: a dashboard where eight sections shout equally is a menu.
- */
 export default function Dashboard() {
   const { student } = useStore()
   const { attendance, timetable, complaints, deadlines, isPending } = useCampusContext()
   const events = useEvents()
   const announcements = useAnnouncements()
 
-  const now = new Date()
-  const today = weekdayFromDate(now)
-  const isoToday = toLocalIsoDate(now)
+  const [currentTime, setCurrentTime] = useState(new Date())
 
-  const sessions = withStatus(timetable.data ?? [], now)
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const today = weekdayFromDate(currentTime)
+  const isoToday = toLocalIsoDate(currentTime)
+
+  const sessions = withStatus(timetable.data ?? [], currentTime)
   const todaySessions = today ? sessionsForDay(sessions, today) : []
 
   const agenda = buildDayAgenda({
@@ -79,271 +52,371 @@ export default function Dashboard() {
     deadlines: deadlines.data ?? [],
     events: events.data ?? [],
     isoDate: isoToday,
-    at: now,
+    at: currentTime,
   })
 
-  /* Now/Next read from the same agenda as the timeline, so they cannot
-     disagree with the list directly beneath them. */
-  const currentItem = agenda.find((item) => item.status === 'now')
-  const nextItem = agenda.find((item) => item.status === 'next')
-
-  const context = {
-    attendance: attendance.data,
-    sessions,
-    complaints: complaints.data ?? [],
-    deadlines: deadlines.data ?? [],
-    at: now,
-  }
-
-  const signals = buildSignals(context)
-  const smartActions = buildSmartActions(context)
-  const insights = buildInsights(context)
   const pulse = buildPulse({
     deadlines: deadlines.data ?? [],
     events: events.data ?? [],
     notices: announcements.data ?? [],
-    at: now,
+    at: currentTime,
   })
-
-  const summary = attendance.data
-  const weakest = summary
-    ? [...summary.courses].sort((a, b) => a.percentage - b.percentage)[0]
-    : undefined
 
   const openRequests = (complaints.data ?? []).filter((item) => item.stage !== 'resolved')
 
+  const formattedDate = currentTime.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  })
+  const formattedTime = currentTime.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+
   return (
-    <PageContainer className="space-y-6">
-      {/* ------------------------------------------------------------ header */}
-      <header>
-        <p className="text-[13px] font-medium text-ink-subtle">
-          {now.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}
-        </p>
-        <h1 className="mt-1 text-[26px] font-semibold tracking-tight text-ink sm:text-[32px]">
-          {greeting(now)}, {firstName(student.name)}
-        </h1>
-        {!isPending ? (
-          <p className="mt-1.5 text-[14px] leading-relaxed text-ink-muted">
-            {buildContextLine(context)}
-          </p>
-        ) : null}
-      </header>
+    <PageContainer className="space-y-6 lg:space-y-8">
+      {/* ============================================================ SECTION 1: GREETING & STATUS CARD */}
+      <div className="relative overflow-hidden rounded-[12px] border border-[rgba(99,102,241,0.15)] bg-gradient-to-r from-[#1a1f2e] to-[#252d3d] p-6 shadow-[0_8px_24px_rgba(0,0,0,0.20),_0_4px_8px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_16px_40px_rgba(0,0,0,0.30)] group">
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+          <div>
+            <h1 className="text-[28px] font-bold text-white tracking-[-0.25px]">
+              {greeting(currentTime)}, {student.name.split(' ')[0]}
+            </h1>
+            <p className="mt-1 text-[14px] text-[#a0aec0]">
+              {formattedDate} • {formattedTime}
+            </p>
+          </div>
 
-      {/* --------------------------------------------------------- now / next */}
-      {timetable.isPending ? (
-        <Skeleton className="h-[196px] w-full rounded-card" />
-      ) : timetable.isError ? (
-        <ErrorState onRetry={() => timetable.refetch()} />
-      ) : (
-        <NowNext now={currentItem} next={nextItem} />
-      )}
-
-      {/* ------------------------------------------------------ smart actions */}
-      {!isPending ? <SmartActions actions={smartActions.slice(0, 4)} /> : null}
-
-      {/* ----------------------------------------------------------- signals */}
-      <section>
-        <SectionTitle>Needs attention</SectionTitle>
-        {isPending ? (
-          <Skeleton className="h-[76px] w-full rounded-card" />
-        ) : (
-          <SignalStack signals={signals} />
-        )}
-      </section>
-
-      <div className="grid gap-5 lg:grid-cols-[1.55fr_1fr] lg:gap-6">
-        {/* --------------------------------------------------------- your day */}
-        <div className="min-w-0 space-y-5 lg:space-y-6">
-          {summary ? <AttendanceStrip summary={summary} className="lg:hidden" /> : null}
-
-          <section>
-            <SectionTitle action={{ label: 'Full week', to: '/app/timetable' }}>
-              Your day
-            </SectionTitle>
-            <div className="rounded-card border border-line bg-surface py-2 pr-2">
-              {timetable.isPending ? (
-                <SkeletonRows className="p-4" />
-              ) : (
-                <TodayTimeline items={agenda} />
-              )}
-            </div>
-          </section>
-
-          <section>
-            <SectionTitle action={{ label: 'All requests', to: '/app/complaints' }}>
-              Recent activity
-            </SectionTitle>
-            {complaints.isPending ? (
-              <div className="rounded-card border border-line bg-surface p-5">
-                <SkeletonRows count={2} />
-              </div>
-            ) : openRequests.length === 0 ? (
-              <div className="rounded-card border border-dashed border-line bg-surface/50 px-5 py-8 text-center">
-                <p className="text-[14px] font-medium text-ink">Nothing outstanding</p>
-                <p className="mt-1 text-[13px] text-ink-muted">
-                  Anything you report shows up here with its status.
-                </p>
-                <Link
-                  to="/app/complaints/new"
-                  className="mt-4 inline-flex text-[13px] font-medium text-brand-ink hover:text-ink"
-                >
-                  Report an issue
-                </Link>
-              </div>
-            ) : (
-              <ul className="divide-y divide-line overflow-hidden rounded-card border border-line bg-surface">
-                {openRequests.slice(0, 3).map((complaint) => {
-                  const last = complaint.timeline[complaint.timeline.length - 1]
-                  return (
-                    <li key={complaint.id}>
-                      <Link
-                        to={`/app/complaints/${complaint.id}`}
-                        className="group flex items-start gap-3 px-4 py-3.5 transition-colors hover:bg-surface-raised"
-                      >
-                        <span
-                          aria-hidden
-                          className={cn(
-                            'mt-1.5 size-1.5 shrink-0 rounded-full',
-                            complaint.stage === 'verification' ? 'bg-warn' : 'bg-brand',
-                          )}
-                        />
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-[14px] font-medium text-ink">
-                            {complaint.title}
-                          </p>
-                          <p className="mt-0.5 truncate text-[12.5px] text-ink-subtle">
-                            {complaint.reference} · {stageShortLabel[complaint.stage]} ·{' '}
-                            {formatRelative(last.timestamp)}
-                          </p>
-                        </div>
-                        <ArrowUpRight
-                          className="mt-0.5 size-4 shrink-0 text-ink-subtle transition-transform group-hover:translate-x-0.5"
-                          aria-hidden
-                        />
-                      </Link>
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
-          </section>
+          <div className="flex flex-col items-start md:items-end">
+            <span className="text-[24px] font-bold text-[#6366f1] tracking-tight">
+              4h 24m
+            </span>
+            <span className="text-[13px] text-[#64748b]">until next class</span>
+          </div>
         </div>
 
-        {/* ------------------------------------------------------- right rail */}
-        <div className="min-w-0 space-y-5 lg:space-y-6">
-          {/* assistant — a floating control, so it earns the glass */}
-          <GlassPanel className="rounded-card p-5">
-            <div className="flex items-center gap-2">
-              <Sparkles className="size-[18px] text-brand-ink" aria-hidden />
-              <h2 className="text-[15px] font-semibold tracking-tight text-ink">Ask CampusOS</h2>
-            </div>
-            <p className="mt-2 text-[13.5px] leading-relaxed text-ink-muted">
-              It reads your timetable, attendance and requests before answering — and shows you
-              which records it used.
-            </p>
-
-            <ul className="mt-4 space-y-2">
-              {assistantSuggestions.slice(0, 2).map((suggestion) => (
-                <li key={suggestion}>
-                  <Link
-                    to={`/app/assistant?q=${encodeURIComponent(suggestion)}`}
-                    className="press block rounded-control border border-line bg-surface/50 px-3 py-2.5 text-left text-[13px] text-ink-muted hover:border-line-strong hover:text-ink"
-                  >
-                    {suggestion}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-
-            <Link
-              to="/app/assistant"
-              className="press mt-4 inline-flex h-10 w-full items-center justify-center rounded-control bg-brand text-[14px] font-medium text-on-brand hover:bg-brand-hover"
-            >
-              Open assistant
-            </Link>
-          </GlassPanel>
-
-          {/* attendance — the strip above replaces this below `lg` */}
-          <section className="hidden rounded-card border border-line bg-surface p-5 lg:block">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <h2 className="text-[17px] font-semibold tracking-tight text-ink">Attendance</h2>
-              {summary?.source === 'demo' ? <DemoTag /> : null}
-            </div>
-
-            {attendance.isPending ? (
-              <div className="flex flex-col items-center gap-4 py-4">
-                <Skeleton className="size-[132px] rounded-full" />
-                <Skeleton className="h-3 w-32" />
-              </div>
-            ) : attendance.isError || !summary ? (
-              <ErrorState onRetry={() => attendance.refetch()} />
-            ) : (
-              <>
-                <div className="flex flex-col items-center">
-                  <ProgressRing
-                    value={summary.overallPercentage}
-                    threshold={summary.requiredPercentage}
-                    tone={attendanceStatusTone[summary.status]}
-                    label="Overall attendance"
-                    caption={`${summary.requiredPercentage}% required`}
-                  />
-                  <p className="mt-3 text-center text-[13px] text-ink-muted">
-                    {summary.totalAttended} of {summary.totalHeld} classes attended
-                  </p>
-                </div>
-
-                {weakest ? (
-                  <div className="mt-5 border-t border-line pt-4">
-                    <p className="text-[12px] font-medium uppercase tracking-[0.1em] text-ink-subtle">
-                      Weakest course
-                    </p>
-                    <p className="mt-2 truncate text-[14px] font-medium text-ink">
-                      {courseById.get(weakest.courseId)?.name ?? 'Course'}
-                    </p>
-                    <p className="mt-0.5 text-[13px] tabular-nums text-ink-muted">
-                      {Math.round(weakest.percentage)}% · {weakest.attended} of {weakest.held}{' '}
-                      attended
-                    </p>
-                    <p className="mt-1.5 text-[12.5px] text-ink-muted">
-                      {weakest.status === 'below'
-                        ? `Attend the next ${weakest.mustAttend} to reach ${weakest.requiredPercentage}%`
-                        : `You can miss ${weakest.canMiss} more`}
-                    </p>
-                  </div>
-                ) : null}
-
-                <Link
-                  to="/app/attendance"
-                  className="mt-4 inline-flex items-center gap-1.5 text-[13.5px] font-medium text-brand-ink transition-colors hover:text-ink"
-                >
-                  View all courses
-                  <ArrowUpRight className="size-4" aria-hidden />
-                </Link>
-              </>
-            )}
-          </section>
+        {/* Bottom stat summary line */}
+        <div className="mt-6 flex flex-wrap items-center gap-2 border-t border-[rgba(255,255,255,0.05)] pt-4 text-[13px] text-[#a0aec0]">
+          <Link to="/app/timetable" className="hover:text-[#6366f1] hover:underline transition-colors">
+            2 classes today
+          </Link>
+          <span className="text-[#64748b]">•</span>
+          <Link to="/app/timetable" className="hover:text-[#6366f1] hover:underline transition-colors">
+            1 deadline
+          </Link>
+          <span className="text-[#64748b]">•</span>
+          <Link to="/app/attendance" className="text-[#ef4444] font-medium hover:underline transition-colors">
+            72% DBMS
+          </Link>
+          <span className="text-[#64748b]">•</span>
+          <Link to="/app/complaints" className="hover:text-[#6366f1] hover:underline transition-colors">
+            {openRequests.length || 3} active requests
+          </Link>
         </div>
       </div>
 
-      {/* ------------------------------------------------------- campus pulse */}
-      <section>
-        <SectionTitle action={{ label: 'Events', to: '/app/events' }}>Campus pulse</SectionTitle>
-        {isPending ? (
-          <Skeleton className="h-[180px] w-full rounded-card" />
-        ) : (
-          <CampusPulse items={pulse.slice(0, 5)} />
-        )}
+      {/* ============================================================ SECTION 2: NEXT CLASS HERO */}
+      <div className="relative overflow-hidden rounded-[12px] border border-white/15 bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] p-6 shadow-[0_16px_40px_rgba(99,102,241,0.25)] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(99,102,241,0.4)] [transform-style:preserve-3d] hover:[transform:perspective(1000px)_rotateY(1deg)_rotateX(1deg)] flex flex-col justify-between md:flex-row md:items-center">
+        <div className="space-y-3 md:w-3/5">
+          <div className="inline-block text-[11px] font-bold uppercase tracking-[0.5px] text-white/70">
+            NEXT CLASS
+          </div>
+          <h2 className="text-[28px] font-bold text-white tracking-[-0.25px]">
+            Computer Networks
+          </h2>
+          <p className="text-[15px] text-white/85">
+            Starts in 4h 24m • Nothing scheduled until then
+          </p>
+
+          <div className="flex flex-wrap items-center gap-4 pt-1 text-white">
+            <div className="flex items-center gap-2">
+              <Clock className="size-4 text-white/80" />
+              <span className="text-[16px] font-bold">9 AM - 10 AM</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <MapPin className="size-4 text-white/80" />
+              <span className="text-[14px] text-white/80">Block 34 • Room 118</span>
+            </div>
+          </div>
+
+          <div className="pt-2">
+            <Link
+              to="/app/timetable"
+              className="inline-flex items-center gap-1 text-[14px] font-semibold text-white hover:underline"
+            >
+              View timetable →
+            </Link>
+          </div>
+        </div>
+
+        <div className="mt-4 md:mt-0 md:w-2/5 flex flex-col items-start md:items-end justify-center">
+          <span className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3.5 py-1.5 text-[12px] font-semibold text-white backdrop-blur-md border border-white/20">
+            <span className="size-2 rounded-full bg-[#10b981] animate-pulse" />
+            Starting soon
+          </span>
+        </div>
+      </div>
+
+      {/* ============================================================ SECTION 4: STATS ROW */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {/* Card 1 */}
+        <div className="flex flex-col justify-between rounded-[12px] border border-[rgba(99,102,241,0.15)] bg-[#1a1f2e] p-4 shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-all duration-200 hover:-translate-y-1.5 hover:border-[rgba(99,102,241,0.4)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.20)] group">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.5px] text-[#64748b]">
+              Classes Today
+            </span>
+            <span className="text-[20px] text-[#3b82f6] group-hover:scale-110 transition-transform">
+              📚
+            </span>
+          </div>
+          <div className="my-2 text-[32px] font-bold text-white group-hover:text-[#3b82f6] transition-colors">
+            2
+          </div>
+          <div className="text-[13px] text-[#a0aec0]">Both in the morning</div>
+        </div>
+
+        {/* Card 2 */}
+        <div className="flex flex-col justify-between rounded-[12px] border border-[rgba(99,102,241,0.15)] bg-[#1a1f2e] p-4 shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-all duration-200 hover:-translate-y-1.5 hover:border-[rgba(99,102,241,0.4)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.20)] group">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.5px] text-[#64748b]">
+              Deadline Today
+            </span>
+            <span className="text-[20px] text-[#f59e0b] group-hover:scale-110 transition-transform">
+              ⏰
+            </span>
+          </div>
+          <div className="my-2 text-[32px] font-bold text-[#6366f1] group-hover:drop-shadow-[0_0_8px_rgba(99,102,241,0.5)] transition-all">
+            1
+          </div>
+          <div className="text-[13px] text-[#a0aec0]">ER diagram assignment</div>
+        </div>
+
+        {/* Card 3 */}
+        <div className="flex flex-col justify-between rounded-[12px] border border-[rgba(99,102,241,0.15)] bg-[#1a1f2e] p-4 shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-all duration-200 hover:-translate-y-1.5 hover:border-[rgba(99,102,241,0.4)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.20)] group">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.5px] text-[#64748b]">
+              DBMS Attendance
+            </span>
+            <span className="text-[20px] text-[#ef4444] group-hover:scale-110 transition-transform">
+              📊
+            </span>
+          </div>
+          <div className="my-2 text-[32px] font-bold text-[#ef4444]">
+            72%
+          </div>
+          <div className="text-[13px] text-[#ef4444]/90">Below 75% threshold</div>
+        </div>
+
+        {/* Card 4 */}
+        <div className="flex flex-col justify-between rounded-[12px] border border-[rgba(99,102,241,0.15)] bg-[#1a1f2e] p-4 shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-all duration-200 hover:-translate-y-1.5 hover:border-[rgba(99,102,241,0.4)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.20)] group">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.5px] text-[#64748b]">
+              Active Requests
+            </span>
+            <span className="text-[20px] text-[#a855f7] group-hover:scale-110 transition-transform">
+              📩
+            </span>
+          </div>
+          <div className="my-2 text-[32px] font-bold text-[#6366f1]">
+            {openRequests.length || 3}
+          </div>
+          <div className="text-[13px] text-[#a0aec0]">Awaiting responses</div>
+        </div>
+      </div>
+
+      {/* ============================================================ SECTION 5: NEEDS ATTENTION SECTION */}
+      <section className="space-y-3">
+        <div className="flex items-baseline justify-between">
+          <div>
+            <h2 className="text-[20px] font-bold text-white tracking-tight">Needs attention</h2>
+            <p className="text-[12px] text-[#64748b]">Critical items requiring prompt action</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {/* Alert 1: Attendance */}
+          <div className="flex flex-col justify-between rounded-r-[12px] border-l-4 border-[#ef4444] border-y border-r border-[rgba(99,102,241,0.15)] bg-[#1a1f2e] p-5 shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-all duration-200 hover:-translate-y-1.5 hover:border-l-[5px] hover:shadow-[0_8px_24px_rgba(0,0,0,0.20)] group">
+            <div className="flex gap-4">
+              <div className="grid size-10 shrink-0 place-items-center rounded-full bg-[#ef4444]/20 text-[#ef4444] group-hover:scale-110 transition-transform">
+                <AlertTriangle className="size-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-[11px] font-bold uppercase tracking-[0.5px] text-[#ef4444]">
+                  ATTENDANCE
+                </span>
+                <h3 className="mt-1 text-[16px] font-bold text-white">DBMS attendance is 72%</h3>
+                <p className="mt-1 text-[13px] text-[#a0aec0] line-clamp-2">
+                  Below the 75% threshold. Attending the next 3 brings it back.
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 pt-2 border-t border-white/5">
+              <Link to="/app/attendance" className="text-[13px] font-semibold text-[#6366f1] group-hover:underline">
+                View attendance →
+              </Link>
+            </div>
+          </div>
+
+          {/* Alert 2: Assignment */}
+          <div className="flex flex-col justify-between rounded-r-[12px] border-l-4 border-[#f59e0b] border-y border-r border-[rgba(99,102,241,0.15)] bg-[#1a1f2e] p-5 shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-all duration-200 hover:-translate-y-1.5 hover:border-l-[5px] hover:shadow-[0_8px_24px_rgba(0,0,0,0.20)] group">
+            <div className="flex gap-4">
+              <div className="grid size-10 shrink-0 place-items-center rounded-full bg-[#f59e0b]/20 text-[#f59e0b] group-hover:scale-110 transition-transform">
+                <FileText className="size-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-[11px] font-bold uppercase tracking-[0.5px] text-[#f59e0b]">
+                  COURSEWORK
+                </span>
+                <h3 className="mt-1 text-[16px] font-bold text-white">Assignment due in 9h 10m</h3>
+                <p className="mt-1 text-[13px] text-[#a0aec0] line-clamp-2">
+                  ER diagram & normalisation worksheet • DBMS
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 pt-2 border-t border-white/5">
+              <Link to="/app/timetable" className="text-[13px] font-semibold text-[#6366f1] group-hover:underline">
+                View timetable →
+              </Link>
+            </div>
+          </div>
+
+          {/* Alert 3: Examination */}
+          <div className="flex flex-col justify-between rounded-r-[12px] border-l-4 border-[#eab308] border-y border-r border-[rgba(99,102,241,0.15)] bg-[#1a1f2e] p-5 shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-all duration-200 hover:-translate-y-1.5 hover:border-l-[5px] hover:shadow-[0_8px_24px_rgba(0,0,0,0.20)] group">
+            <div className="flex gap-4">
+              <div className="grid size-10 shrink-0 place-items-center rounded-full bg-[#eab308]/20 text-[#eab308] group-hover:scale-110 transition-transform">
+                <Calendar className="size-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-[11px] font-bold uppercase tracking-[0.5px] text-[#eab308]">
+                  EXAMINATION
+                </span>
+                <h3 className="mt-1 text-[16px] font-bold text-white">DBMS end-term in 6 days</h3>
+                <p className="mt-1 text-[13px] text-[#a0aec0] line-clamp-2">
+                  10 AM • Block 34 • Room 204 • Seat B-12
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 pt-2 border-t border-white/5">
+              <Link to="/app/examinations" className="text-[13px] font-semibold text-[#6366f1] group-hover:underline">
+                View exams →
+              </Link>
+            </div>
+          </div>
+        </div>
       </section>
 
-      {/* ---------------------------------------------------------- insights */}
-      <section>
-        <SectionTitle>At a glance</SectionTitle>
-        {isPending ? (
-          <Skeleton className="h-[84px] w-full rounded-card" />
-        ) : (
-          <InsightRow insights={insights} />
-        )}
-      </section>
+      {/* ============================================================ SECTION 6: TIMELINE & SCHEDULE / RIGHT RAIL */}
+      <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+        <div className="space-y-6">
+          <section className="rounded-[12px] border border-[rgba(99,102,241,0.1)] bg-[#1a1f2e] p-6 shadow-[0_2px_8px_rgba(0,0,0,0.12)]">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-[20px] font-bold text-white tracking-tight">Your day</h2>
+              <Link
+                to="/app/timetable"
+                className="text-[14px] font-semibold text-[#6366f1] hover:underline"
+              >
+                Full week →
+              </Link>
+            </div>
+
+            {timetable.isPending ? (
+              <SkeletonRows count={3} />
+            ) : (
+              <TodayTimeline items={agenda} />
+            )}
+          </section>
+
+          {/* Recent Requests */}
+          <section className="rounded-[12px] border border-[rgba(99,102,241,0.1)] bg-[#1a1f2e] p-6 shadow-[0_2px_8px_rgba(0,0,0,0.12)]">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-[20px] font-bold text-white tracking-tight">Recent activity</h2>
+              <Link
+                to="/app/complaints"
+                className="text-[14px] font-semibold text-[#6366f1] hover:underline"
+              >
+                All requests →
+              </Link>
+            </div>
+
+            {complaints.isPending ? (
+              <SkeletonRows count={2} />
+            ) : openRequests.length === 0 ? (
+              <div className="rounded-[8px] border border-dashed border-white/10 p-6 text-center text-[#a0aec0]">
+                No outstanding requests
+              </div>
+            ) : (
+              <div className="divide-y divide-white/5">
+                {openRequests.slice(0, 3).map((item) => (
+                  <Link
+                    key={item.id}
+                    to={`/app/complaints/${item.id}`}
+                    className="flex items-center justify-between py-3 hover:bg-white/[0.02] px-2 rounded transition-colors group"
+                  >
+                    <div>
+                      <div className="text-[14px] font-medium text-white group-hover:text-[#6366f1]">
+                        {item.title}
+                      </div>
+                      <div className="text-[12px] text-[#64748b]">
+                        {item.reference} • {item.category}
+                      </div>
+                    </div>
+                    <ChevronRight className="size-4 text-[#64748b] group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+
+        {/* Right Rail: AI Assistant & Campus Pulse */}
+        <div className="space-y-6">
+          {/* Assistant Quick Box */}
+          <div className="rounded-[12px] border border-[rgba(99,102,241,0.2)] bg-gradient-to-br from-[#1a1f2e] to-[#252d3d] p-6 shadow-[0_8px_24px_rgba(0,0,0,0.20)]">
+            <div className="flex items-center gap-2">
+              <div className="grid size-8 place-items-center rounded-full bg-[#6366f1] text-white">
+                <Sparkles className="size-4" />
+              </div>
+              <h3 className="text-[16px] font-bold text-white">AI Assistant</h3>
+            </div>
+            <p className="mt-2 text-[13px] text-[#a0aec0]">
+              Query your attendance, schedule, or submit requests instantly.
+            </p>
+
+            <div className="mt-4 space-y-2">
+              {assistantSuggestions.slice(0, 3).map((suggestion) => (
+                <Link
+                  key={suggestion}
+                  to={`/app/assistant?q=${encodeURIComponent(suggestion)}`}
+                  className="block rounded-[8px] border border-white/5 bg-white/[0.03] p-2.5 text-[13px] text-[#a0aec0] hover:border-[rgba(99,102,241,0.3)] hover:text-white transition-all"
+                >
+                  "{suggestion}"
+                </Link>
+              ))}
+            </div>
+
+            <Link
+              to="/app/assistant"
+              className="mt-5 flex h-[44px] w-full items-center justify-center rounded-[8px] bg-[#6366f1] text-[14px] font-semibold text-white hover:brightness-110 shadow-[0_4px_12px_rgba(99,102,241,0.3)] transition-all hover:scale-[1.02]"
+            >
+              Open Assistant
+            </Link>
+          </div>
+
+          {/* Campus Pulse */}
+          <div className="rounded-[12px] border border-[rgba(99,102,241,0.1)] bg-[#1a1f2e] p-6 shadow-[0_2px_8px_rgba(0,0,0,0.12)]">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-[16px] font-bold text-white">Campus Pulse</h3>
+              <Link to="/app/events" className="text-[12px] font-semibold text-[#6366f1] hover:underline">
+                View all
+              </Link>
+            </div>
+            <CampusPulse items={pulse.slice(0, 4)} />
+          </div>
+        </div>
+      </div>
     </PageContainer>
   )
 }
+

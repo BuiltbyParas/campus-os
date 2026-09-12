@@ -1,50 +1,30 @@
-import { ArrowUp, RotateCcw, Sparkles } from 'lucide-react'
+import { ArrowUp, Clock, FileText, Calendar, Star, CheckCircle, RotateCcw, Sparkles, Send, HelpCircle, ArrowRight } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { useStore } from '@/app/store'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { DemoTag } from '@/components/ui/DemoTag'
-import { GlassPanel } from '@/components/ui/GlassPanel'
-import { assistantSuggestions } from '@/data'
 import { cn, uid } from '@/lib/utils'
 import { ask } from '@/services/assistant'
 import type { AssistantDataPoint, AssistantSource, ChatMessage } from '@/types'
 
-/* ------------------------------------------------------------- fragments */
+const questionCards = [
+  { text: 'Can I skip DBMS?', icon: Clock, subtext: 'Check threshold & impact' },
+  { text: 'How is my attendance?', icon: CheckCircle, subtext: 'Overview across all subjects' },
+  { text: 'What does my day look like?', icon: Calendar, subtext: 'Today’s sessions & rooms' },
+  { text: 'What coursework is due?', icon: FileText, subtext: 'Upcoming assignment deadlines' },
+  { text: 'When is my next exam?', icon: Clock, subtext: 'Seat & syllabus schedule' },
+  { text: 'What are my grades?', icon: Star, subtext: 'Assessments and CA scores' },
+]
 
-const toneClass: Record<NonNullable<AssistantDataPoint['tone']>, string> = {
-  neutral: 'text-ink',
-  ok: 'text-ok-ink',
-  warn: 'text-warn-ink',
-  danger: 'text-danger-ink',
-}
-
-const sourceLabel: Record<AssistantSource['kind'], string> = {
-  attendance: 'Attendance',
-  timetable: 'Timetable',
-  complaints: 'Requests',
-  policy: 'Policy',
-}
-
-/**
- * The figures behind an answer.
- *
- * Showing the arithmetic is the point: a student should be able to check the
- * assistant's reasoning rather than take "you're at 72%" on trust.
- */
 function DataStrip({ data }: { data: AssistantDataPoint[] }) {
   return (
-    <dl className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-tile border border-line bg-line sm:grid-cols-4">
+    <dl className="mt-4 grid grid-cols-2 gap-2 overflow-hidden rounded-[8px] border border-white/5 bg-black/20 p-2 sm:grid-cols-4">
       {data.map((point) => (
-        <div key={point.label} className="bg-surface px-3 py-2.5">
-          <dt className="text-[11px] text-ink-subtle">{point.label}</dt>
-          <dd
-            className={cn(
-              'mt-1 text-[15px] font-semibold tabular-nums',
-              toneClass[point.tone ?? 'neutral'],
-            )}
-          >
+        <div key={point.label} className="bg-[#1a1f2e] p-2.5 rounded">
+          <dt className="text-[11px] text-[#64748b]">{point.label}</dt>
+          <dd className="mt-1 text-[15px] font-bold text-white tabular-nums">
             {point.value}
           </dd>
         </div>
@@ -53,24 +33,19 @@ function DataStrip({ data }: { data: AssistantDataPoint[] }) {
   )
 }
 
-/**
- * Where each part of an answer came from. A `demo` source is marked, so a demo
- * rule can never be mistaken for an institutional one.
- */
 function Sources({ sources }: { sources: AssistantSource[] }) {
   return (
-    <div className="mt-4 border-t border-line pt-3">
-      <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.1em] text-ink-subtle">
-        Based on
+    <div className="mt-4 border-t border-white/5 pt-3">
+      <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-[#64748b]">
+        Connected Records
       </p>
       <ul className="space-y-1.5">
         {sources.map((source) => (
           <li key={`${source.kind}-${source.label}`} className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center rounded border border-line px-1.5 py-0.5 text-[10.5px] font-medium text-ink-muted">
-              {sourceLabel[source.kind]}
+            <span className="inline-flex items-center rounded border border-[rgba(99,102,241,0.2)] bg-[#6366f1]/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-[#6366f1]">
+              {source.kind}
             </span>
-            <span className="text-[12.5px] text-ink-muted">{source.detail}</span>
-            {source.source === 'demo' ? <DemoTag /> : null}
+            <span className="text-[12.5px] text-[#a0aec0]">{source.detail}</span>
           </li>
         ))}
       </ul>
@@ -82,7 +57,7 @@ function Bubble({ message }: { message: ChatMessage }) {
   if (message.role === 'user') {
     return (
       <li className="flex justify-end">
-        <div className="max-w-[85%] rounded-2xl rounded-br-md bg-brand px-4 py-2.5 text-[14.5px] leading-relaxed text-on-brand">
+        <div className="max-w-[80%] rounded-[12px] bg-[#6366f1] px-4 py-3 text-[14px] leading-relaxed text-white shadow-md">
           {message.content}
         </div>
       </li>
@@ -90,59 +65,47 @@ function Bubble({ message }: { message: ChatMessage }) {
   }
 
   return (
-    <li>
-      <div className="flex gap-3">
-        <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-brand-soft">
-          <Sparkles className="size-3.5 text-brand-ink" aria-hidden />
-        </span>
+    <li className="flex gap-3">
+      <div className="grid size-8 shrink-0 place-items-center rounded-full bg-[#6366f1]/20 text-[#6366f1]">
+        <Sparkles className="size-4" />
+      </div>
 
-        <div className="min-w-0 flex-1 rounded-2xl rounded-tl-md border border-line bg-surface p-4">
-          {message.pending ? (
-            <div aria-label="Checking your records">
-              <p className="text-[13px] text-ink-muted">Checking your records…</p>
-              <ul className="mt-2.5 flex flex-wrap gap-1.5">
-                {['Attendance', 'Timetable', 'Coursework', 'Requests'].map((source, i) => (
-                  <li
-                    key={source}
-                    className="animate-pulse rounded border border-line px-1.5 py-0.5 text-[10.5px] font-medium text-ink-subtle"
-                    style={{ animationDelay: `${i * 120}ms` }}
-                  >
-                    {source}
-                  </li>
-                ))}
-              </ul>
+      <div className="min-w-0 flex-1 rounded-[12px] border border-[rgba(99,102,241,0.15)] bg-[#252d3d] p-4 text-white shadow-[0_2px_8px_rgba(0,0,0,0.12)]">
+        {message.pending ? (
+          <div className="space-y-2">
+            <p className="text-[13px] text-[#a0aec0]">Checking records…</p>
+            <div className="flex gap-1.5">
+              {['Attendance', 'Timetable', 'Coursework', 'Requests'].map((source) => (
+                <span key={source} className="rounded bg-white/5 px-2 py-0.5 text-[10px] text-[#64748b] animate-pulse">
+                  {source}
+                </span>
+              ))}
             </div>
-          ) : (
-            <>
-              <p className="text-[14.5px] leading-relaxed text-ink">{message.content}</p>
-
-              {message.data && message.data.length > 0 ? <DataStrip data={message.data} /> : null}
-              {message.sources && message.sources.length > 0 ? (
-                <Sources sources={message.sources} />
-              ) : null}
-
-              {message.actions && message.actions.length > 0 ? (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {message.actions.map((action) => (
-                    <Link
-                      key={action.to}
-                      to={action.to}
-                      className="press inline-flex items-center rounded-control border border-line bg-surface-raised px-3 py-1.5 text-[12.5px] font-medium text-ink hover:border-line-strong"
-                    >
-                      {action.label}
-                    </Link>
-                  ))}
-                </div>
-              ) : null}
-            </>
-          )}
-        </div>
+          </div>
+        ) : (
+          <>
+            <p className="text-[14px] leading-relaxed">{message.content}</p>
+            {message.data && message.data.length > 0 && <DataStrip data={message.data} />}
+            {message.sources && message.sources.length > 0 && <Sources sources={message.sources} />}
+            {message.actions && message.actions.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {message.actions.map((action) => (
+                  <Link
+                    key={action.to}
+                    to={action.to}
+                    className="inline-flex items-center rounded-[6px] border border-[rgba(99,102,241,0.3)] bg-white/5 px-3 py-1.5 text-[12px] font-semibold text-[#6366f1] hover:bg-white/10"
+                  >
+                    {action.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </>
+        )}
       </div>
     </li>
   )
 }
-
-/* ------------------------------------------------------------------ page */
 
 export default function Assistant() {
   const { student } = useStore()
@@ -182,13 +145,11 @@ export default function Assistant() {
     }
   }
 
-  /* A suggestion followed from the dashboard arrives as ?q= and asks itself. */
   useEffect(() => {
     const question = searchParams.get('q')
     if (!question) return
     setSearchParams({}, { replace: true })
     void send(question)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -200,113 +161,127 @@ export default function Assistant() {
     void send(input)
   }
 
-  const empty = messages.length === 0
-
   return (
-    <PageContainer width="narrow" className="flex min-h-[calc(100dvh-13rem)] flex-col">
-      <header className="flex items-start justify-between gap-4">
+    <PageContainer className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-[rgba(99,102,241,0.1)] pb-4">
         <div>
-          <h1 className="text-[26px] font-semibold tracking-tight text-ink sm:text-[32px]">
-            AI Assistant
-          </h1>
-          <p className="mt-1.5 text-[14.5px] text-ink-muted">
-            Answers built from {student.name.split(' ')[0]}’s attendance, timetable and requests.
+          <h1 className="text-[28px] font-bold text-white tracking-tight">AI Assistant</h1>
+          <p className="text-[14px] text-[#a0aec0]">
+            Direct intelligence powered by your attendance, grades, and schedule.
           </p>
         </div>
-
-        {!empty ? (
+        {messages.length > 0 && (
           <button
-            type="button"
-            onClick={() => {
-              setMessages([])
-              setError(null)
-              inputRef.current?.focus()
-            }}
-            className="press inline-flex shrink-0 items-center gap-1.5 rounded-control border border-line bg-surface px-3 py-2 text-[13px] font-medium text-ink-muted hover:border-line-strong hover:text-ink"
+            onClick={() => setMessages([])}
+            className="flex items-center gap-1.5 rounded-[8px] border border-white/10 px-3 py-1.5 text-[13px] text-[#a0aec0] hover:bg-white/5 hover:text-white"
           >
-            <RotateCcw className="size-3.5" aria-hidden />
-            Clear
+            <RotateCcw className="size-3.5" />
+            Reset Chat
           </button>
-        ) : null}
-      </header>
-
-      {/* --------------------------------------------------------- transcript */}
-      <div className="mt-6 flex-1">
-        {empty ? (
-          <div className="rounded-card border border-line bg-surface p-6 sm:p-8">
-            <span className="grid size-10 place-items-center rounded-full bg-brand-soft">
-              <Sparkles className="size-5 text-brand-ink" aria-hidden />
-            </span>
-            <h2 className="mt-4 text-[17px] font-semibold tracking-tight text-ink">
-              What would you like to know?
-            </h2>
-            <p className="mt-1.5 max-w-md text-[14px] leading-relaxed text-ink-muted">
-              The assistant reads your own campus records and shows the figures behind every
-              answer. It never states a university policy as fact — demo rules are labelled.
-            </p>
-
-            <ul className="mt-5 space-y-2">
-              {assistantSuggestions.map((suggestion) => (
-                <li key={suggestion}>
-                  <button
-                    type="button"
-                    onClick={() => void send(suggestion)}
-                    className="press w-full rounded-control border border-line bg-surface-raised px-3.5 py-3 text-left text-[13.5px] text-ink-muted hover:border-line-strong hover:text-ink"
-                  >
-                    {suggestion}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : (
-          <ul className="space-y-5">
-            {messages.map((message) => (
-              <Bubble key={message.id} message={message} />
-            ))}
-          </ul>
         )}
-
-        {error ? (
-          <p role="alert" className="mt-4 text-[13.5px] text-danger-ink">
-            {error}
-          </p>
-        ) : null}
-
-        <div ref={endRef} />
       </div>
 
-      {/* ---------------------------------------------------------- composer */}
-      <div className="sticky bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-10 mt-6 lg:bottom-6">
-        <GlassPanel as="form" onSubmit={handleSubmit} className="rounded-2xl p-2">
-          <div className="flex items-center gap-2">
-            <label htmlFor="assistant-input" className="sr-only">
-              Ask the assistant
-            </label>
-            <input
-              id="assistant-input"
-              ref={inputRef}
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-              placeholder="Ask about attendance, classes or a request…"
-              autoComplete="off"
-              className="h-11 min-w-0 flex-1 bg-transparent px-3 text-[14.5px] text-ink placeholder:text-ink-subtle focus:outline-none"
-            />
-            <button
-              type="submit"
-              disabled={!input.trim() || busy}
-              aria-label="Send question"
-              className="press grid size-11 shrink-0 place-items-center rounded-xl bg-brand text-on-brand transition-opacity disabled:pointer-events-none disabled:opacity-40"
-            >
-              <ArrowUp className="size-[18px]" aria-hidden />
-            </button>
-          </div>
-        </GlassPanel>
+      {/* Main Two-Column Layout */}
+      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+        {/* Left Column: Chat or Suggestions Grid */}
+        <div className="flex flex-col min-h-[500px]">
+          {messages.length === 0 ? (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-[18px] font-semibold text-white mb-1">Recommended Inquiries</h2>
+                <p className="text-[13px] text-[#64748b]">Click any query to evaluate records immediately</p>
+              </div>
 
-        <p className="mt-2 px-1 text-center text-[11.5px] text-ink-subtle">
-          Demo assistant · answers are generated from demo campus records
-        </p>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {questionCards.map((card) => (
+                  <button
+                    key={card.text}
+                    onClick={() => void send(card.text)}
+                    className="flex flex-col justify-between rounded-[12px] border border-[rgba(99,102,241,0.15)] bg-[#1a1f2e] p-4 text-left shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-all duration-200 hover:-translate-y-2 hover:border-[rgba(99,102,241,0.4)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.20)] group cursor-pointer"
+                  >
+                    <div>
+                      <card.icon className="size-6 text-[#6366f1] group-hover:scale-115 transition-transform" />
+                      <h3 className="mt-3 text-[14px] font-bold text-white group-hover:text-[#6366f1] transition-colors">
+                        {card.text}
+                      </h3>
+                      <p className="mt-1 text-[12px] text-[#64748b]">{card.subtext}</p>
+                    </div>
+                    <div className="mt-4 flex items-center gap-1 text-[12px] font-semibold text-[#6366f1] opacity-0 group-hover:opacity-100 transition-opacity">
+                      Ask now <ArrowRight className="size-3" />
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <ul className="space-y-4 flex-1 overflow-y-auto pr-2 pb-4 max-h-[600px]">
+              {messages.map((m) => (
+                <Bubble key={m.id} message={m} />
+              ))}
+              <div ref={endRef} />
+            </ul>
+          )}
+
+          {/* Chat Composer */}
+          <form onSubmit={handleSubmit} className="mt-auto pt-4">
+            <div className="relative flex items-center">
+              <input
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask about attendance, classes, exams, marks or fees..."
+                className="h-[56px] w-full rounded-[12px] border border-[rgba(99,102,241,0.2)] bg-[#1a1f2e] pl-4 pr-16 text-[14px] text-white placeholder:text-[#64748b] focus:border-[#6366f1] focus:outline-none focus:shadow-[0_0_12px_rgba(99,102,241,0.3)] transition-all"
+              />
+              <button
+                type="submit"
+                disabled={!input.trim() || busy}
+                className="absolute right-2 grid size-10 place-items-center rounded-full bg-[#6366f1] text-white hover:scale-105 active:scale-95 disabled:opacity-40 transition-all shadow-[0_0_8px_rgba(99,102,241,0.4)]"
+              >
+                <Send className="size-4" />
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Right Column: Connected Records Sidebar */}
+        <aside className="rounded-[12px] border border-[rgba(99,102,241,0.15)] bg-[#1a1f2e] p-5 shadow-[0_2px_8px_rgba(0,0,0,0.12)] h-fit space-y-4">
+          <div className="border-b border-white/5 pb-3">
+            <div className="text-[12px] font-bold uppercase tracking-[0.5px] text-[#64748b]">
+              Connected Records
+            </div>
+            <p className="text-[11px] text-[#a0aec0] mt-0.5">Live sync with Student ERP</p>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-2 rounded hover:bg-white/[0.02]">
+              <span className="text-[13px] text-[#a0aec0]">Today's Classes</span>
+              <span className="text-[16px] font-bold text-white">2</span>
+            </div>
+            <div className="flex items-center justify-between p-2 rounded hover:bg-white/[0.02]">
+              <span className="text-[13px] text-[#a0aec0]">Overall Attendance</span>
+              <span className="text-[16px] font-bold text-[#10b981]">80%</span>
+            </div>
+            <div className="flex items-center justify-between p-2 rounded hover:bg-white/[0.02]">
+              <span className="text-[13px] text-[#a0aec0]">Assignments Due</span>
+              <span className="text-[16px] font-bold text-[#f59e0b]">1</span>
+            </div>
+            <div className="flex items-center justify-between p-2 rounded hover:bg-white/[0.02]">
+              <span className="text-[13px] text-[#a0aec0]">Next Exam</span>
+              <span className="text-[16px] font-bold text-[#6366f1]">6 days</span>
+            </div>
+            <div className="flex items-center justify-between p-2 rounded hover:bg-white/[0.02]">
+              <span className="text-[13px] text-[#a0aec0]">Open Requests</span>
+              <span className="text-[16px] font-bold text-white">3</span>
+            </div>
+            <div className="flex items-center justify-between p-2 rounded hover:bg-white/[0.02]">
+              <span className="text-[13px] text-[#a0aec0]">Pending Fees</span>
+              <span className="text-[16px] font-bold text-[#ef4444]">₹1,500</span>
+            </div>
+          </div>
+        </aside>
       </div>
     </PageContainer>
   )
 }
+

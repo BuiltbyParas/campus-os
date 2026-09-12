@@ -47,11 +47,12 @@ export default function Timetable() {
   )
 
   return (
-    <PageContainer className="space-y-6">
-      <PageHeader
-        title="Timetable"
-        description="Your weekly schedule. The class running now is highlighted."
-      />
+      <div className="border-b border-[rgba(99,102,241,0.1)] pb-4">
+        <h1 className="text-[28px] font-bold text-white tracking-tight">Timetable</h1>
+        <p className="text-[14px] text-[#a0aec0]">
+          Weekly lecture routine and real-time room assignments.
+        </p>
+      </div>
 
       {/* -------------------------------------------------- now / next / later */}
       {!timetable.isPending && !timetable.isError && today ? (
@@ -60,18 +61,18 @@ export default function Timetable() {
 
           {laterItems.length > 0 ? (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[12px] font-medium uppercase tracking-[0.12em] text-ink-subtle">
-                Later
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748b]">
+                Later Today
               </span>
               {laterItems.map((item) => (
                 <span
                   key={item.id}
-                  className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-[12.5px] text-ink-muted"
+                  className="inline-flex items-center gap-2 rounded-full border border-[rgba(99,102,241,0.2)] bg-[#1a1f2e] px-3.5 py-1 text-[13px] text-white"
                 >
-                  <span className="tabular-nums text-ink-subtle">
+                  <span className="tabular-nums text-[#6366f1] font-semibold">
                     {formatTime(item.startTime)}
                   </span>
-                  <span className="truncate text-ink">{item.title}</span>
+                  <span className="truncate">{item.title}</span>
                 </span>
               ))}
             </div>
@@ -83,7 +84,7 @@ export default function Timetable() {
       <div
         role="tablist"
         aria-label="Day of the week"
-        className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none"
+        className="flex gap-2 overflow-x-auto pb-2 scrollbar-none"
       >
         {weekdays.map((day) => {
           const active = day === selected
@@ -98,25 +99,20 @@ export default function Timetable() {
               aria-selected={active}
               onClick={() => setSelected(day)}
               className={cn(
-                'press flex min-w-[76px] flex-col items-center gap-1 rounded-tile border px-3 py-2.5',
+                'flex min-w-[80px] flex-col items-center justify-center rounded-[10px] border px-4 py-2.5 transition-all cursor-pointer',
                 active
-                  ? 'border-brand-border/50 bg-brand-soft text-ink'
-                  : 'border-line bg-surface text-ink-muted hover:border-line-strong hover:text-ink',
+                  ? 'border-[#6366f1] bg-[#6366f1] text-white shadow-[0_4px_12px_rgba(99,102,241,0.35)]'
+                  : 'border-[rgba(99,102,241,0.15)] bg-[#1a1f2e] text-[#a0aec0] hover:border-[rgba(99,102,241,0.3)] hover:text-white',
               )}
             >
-              <span className="text-[13px] font-medium">{weekdayShort[day]}</span>
-              <span
-                className={cn(
-                  'text-[11px]',
-                  active ? 'text-brand-ink' : 'text-ink-subtle',
-                )}
-              >
+              <span className="text-[11px] font-bold uppercase tracking-wider opacity-80">
+                {weekdayShort[day]}
+              </span>
+              <span className="text-[16px] font-bold mt-0.5">
                 {count} {count === 1 ? 'class' : 'classes'}
               </span>
-              {isToday ? (
-                <span aria-hidden className="size-1 rounded-full bg-brand" />
-              ) : (
-                <span aria-hidden className="size-1" />
+              {isToday && (
+                <span className={cn('size-1.5 rounded-full mt-1.5', active ? 'bg-white' : 'bg-[#10b981]')} />
               )}
             </button>
           )

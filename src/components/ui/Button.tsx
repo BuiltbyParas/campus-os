@@ -2,28 +2,24 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { Loader2 } from 'lucide-react'
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-
 import { cn } from '@/lib/utils'
 
 const button = cva(
-  'relative inline-flex select-none items-center justify-center gap-2 rounded-control font-medium transition-[background-color,color,border-color,box-shadow,transform] duration-150 active:scale-[0.975] disabled:pointer-events-none disabled:opacity-50',
+  'relative inline-flex select-none items-center justify-center gap-2 rounded-[8px] font-semibold transition-all duration-200 active:scale-[0.98] hover:scale-[1.02] disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
-        primary:
-          'bg-brand text-on-brand shadow-e1 hover:bg-brand-hover hover:shadow-e2',
-        secondary:
-          'bg-surface text-ink border border-line shadow-e1 hover:border-line-strong hover:bg-surface-muted',
-        soft: 'bg-brand-soft text-brand-ink hover:brightness-[0.97] dark:hover:brightness-110',
-        ghost: 'text-ink-muted hover:bg-surface-muted hover:text-ink',
-        danger: 'bg-danger text-white shadow-e1 hover:brightness-95',
+        primary: 'bg-[#6366f1] text-[#ffffff] hover:brightness-110 hover:shadow-[0_8px_24px_rgba(0,0,0,0.20),_0_4px_8px_rgba(0,0,0,0.12)]',
+        secondary: 'bg-transparent border-2 border-[#6366f1] text-[#6366f1] hover:bg-[rgba(99,102,241,0.1)] hover:border-[#8b5cf6]',
+        tertiary: 'bg-transparent border-none text-[#6366f1] hover:bg-[rgba(99,102,241,0.08)] hover:underline',
+        danger: 'bg-[#ef4444] text-[#ffffff] hover:brightness-110 hover:shadow-[0_8px_24px_rgba(0,0,0,0.20),_0_4px_8px_rgba(0,0,0,0.12)]',
+        success: 'bg-[#10b981] text-[#ffffff] hover:brightness-110',
       },
       size: {
-        sm: 'h-9 px-3 text-[13px]',
-        md: 'h-10 px-4 text-sm',
-        lg: 'h-12 px-5 text-[15px]',
-        icon: 'h-10 w-10',
-        'icon-sm': 'h-9 w-9',
+        sm: 'h-[36px] px-3 text-[14px]',
+        md: 'h-[44px] px-[12px] text-[14px]',
+        lg: 'h-[48px] px-[16px] text-[16px]',
+        icon: 'h-[44px] w-[44px]',
       },
       block: { true: 'w-full', false: '' },
     },
@@ -54,17 +50,16 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       {...props}
     >
       {loading ? (
-        <Loader2 className="size-4 animate-spin" aria-hidden />
+        <Loader2 className="size-[16px] animate-spin text-[#6366f1]" aria-hidden />
       ) : (
-        icon
+        icon && <span className="mr-1">{icon}</span>
       )}
-      {children}
-      {!loading && iconRight}
+      {!loading && children}
+      {!loading && iconRight && <span className="ml-1">{iconRight}</span>}
     </button>
   )
 })
 
-/** Same visual language as Button, but renders a router link. */
 export function ButtonLink({
   to,
   className,
@@ -82,9 +77,9 @@ export function ButtonLink({
 } & Omit<React.ComponentProps<typeof Link>, 'to' | 'className'>) {
   return (
     <Link to={to} className={cn(button({ variant, size, block }), className)} {...props}>
-      {icon}
+      {icon && <span className="mr-1">{icon}</span>}
       {children}
-      {iconRight}
+      {iconRight && <span className="ml-1">{iconRight}</span>}
     </Link>
   )
 }
