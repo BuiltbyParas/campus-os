@@ -1,0 +1,17 @@
+{
+  "name": "CampusOS — Your campus. One intelligent system.",
+  "short_name": "CampusOS",
+  "description": "Attendance, timetable, exams, fees and campus services in one student app, with an assistant that reads your own records. Demonstration build with demo data.",
+  "id": "/campus-os/",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#080b12",
+  "theme_color": "#080b12",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

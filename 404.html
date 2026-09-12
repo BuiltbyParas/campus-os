@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en" style="background-color: #080b12">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#080B12" />
+    <meta
+      name="description"
+      content="CampusOS — one intelligent system for everything students need, from attendance and timetables to campus services and AI-powered assistance."
+    />
+    <link rel="icon" type="image/svg+xml" href="/campus-os/favicon.svg" />
+    <link rel="apple-touch-icon" href="/campus-os/apple-touch-icon.png" />
+    <link rel="manifest" href="/campus-os/manifest.webmanifest" />
+
+    <!-- Installed to a phone home screen, CampusOS should open as an app:
+         no browser chrome, and the status bar painted in the app's own dark
+         canvas rather than white. -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="CampusOS" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- How the link looks when it is shared. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="CampusOS" />
+    <meta property="og:title" content="CampusOS — Your campus. One intelligent system." />
+    <meta
+      property="og:description"
+      content="Attendance, timetable, exams, fees and campus services in one student app, with an assistant that reads your own records. Demonstration build running on demo data."
+    />
+    <meta property="og:url" content="https://builtbyparas.github.io/campus-os/" />
+    <meta property="og:image" content="https://builtbyparas.github.io/campus-os/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="CampusOS — Your campus. One intelligent system." />
+    <meta
+      name="twitter:description"
+      content="One student app for attendance, timetable, exams, fees and campus services. Demonstration build running on demo data."
+    />
+    <meta name="twitter:image" content="https://builtbyparas.github.io/campus-os/og.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap"
+      rel="stylesheet"
+    />
+
+    <title>CampusOS — Your campus. One intelligent system.</title>
+
+    <!--
+      Paint the dark canvas before React mounts.
+
+      Without this the first frame is the light canvas and the whole product
+      flashes white on load, which is exactly the impression the dark
+      environment exists to avoid. Mirrors the default in src/app/theme.tsx;
+      a stored preference still wins.
+    -->
+    <script>
+      ;(function () {
+        try {
+          var stored = localStorage.getItem('campusos.theme')
+          var dark =
+            stored === 'dark' ||
+            (stored === null && true) ||
+            (stored === 'system' &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches)
+          if (dark) document.documentElement.classList.add('dark')
+        } catch (e) {
+          document.documentElement.classList.add('dark')
+        }
+      })()
+    </script>
+    <script type="module" crossorigin src="/campus-os/assets/index-CQV2osDR.js"></script>
+    <link rel="modulepreload" crossorigin href="/campus-os/assets/rolldown-runtime-CbXtAM7H.js">
+    <link rel="modulepreload" crossorigin href="/campus-os/assets/PageContainer-H5GccL6-.js">
+    <link rel="modulepreload" crossorigin href="/campus-os/assets/reduced-motion-2fDGfAC9.js">
+    <link rel="modulepreload" crossorigin href="/campus-os/assets/proxy-2bVaPz0V.js">
+    <link rel="modulepreload" crossorigin href="/campus-os/assets/loader-circle-BD_pWsNB.js">
+    <link rel="stylesheet" crossorigin href="/campus-os/assets/index-CMwH73H3.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
