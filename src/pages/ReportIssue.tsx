@@ -53,7 +53,7 @@ function Step({
   children: React.ReactNode
 }) {
   return (
-    <section className="rounded-card border border-line bg-surface p-5 sm:p-6">
+    <section className="card-premium p-5 sm:p-6">
       <div className="flex items-baseline gap-3">
         <span className="text-[12px] font-semibold tabular-nums text-ink-subtle">
           {String(index).padStart(2, '0')}

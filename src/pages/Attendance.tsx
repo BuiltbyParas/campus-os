@@ -35,7 +35,7 @@ export default function Attendance() {
       {attendance.isPending ? (
         <div className="space-y-4">
           <Skeleton className="h-[196px] w-full rounded-card" />
-          <div className="rounded-card border border-line bg-surface p-5">
+          <div className="card-premium p-5">
             <SkeletonRows count={5} />
           </div>
         </div>
@@ -48,7 +48,7 @@ export default function Attendance() {
       ) : (
         <>
           {/* ------------------------------------------------------- overview */}
-          <section className="rounded-card border border-line bg-surface p-5 sm:p-6">
+          <section className="card-premium p-5 sm:p-6">
             <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:gap-8">
               <ProgressRing
                 value={summary.overallPercentage}
@@ -200,7 +200,7 @@ export default function Attendance() {
           {/* -------------------------------------------------------- courses */}
           <section id="by-course" className="scroll-mt-24">
             <h2 className="mb-3 text-[17px] font-semibold tracking-tight text-ink">By course</h2>
-            <div className="divide-y divide-line rounded-card border border-line bg-surface px-5">
+            <div className="divide-y divide-line card-premium px-5">
               {sorted.map((course) => (
                 <AttendanceRow key={course.courseId} attendance={course} />
               ))}

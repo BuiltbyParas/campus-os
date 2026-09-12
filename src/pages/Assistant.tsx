@@ -260,7 +260,7 @@ export default function Assistant() {
         <div className="flex min-w-0 flex-1 flex-col xl:order-1">
           <div className="flex-1">
             {empty ? (
-              <div className="rounded-card border border-line bg-surface p-6 sm:p-8">
+              <div className="card-premium p-6 sm:p-8">
                 <span className="grid size-10 place-items-center rounded-full bg-brand-soft">
                   <Sparkles className="size-5 text-brand-ink" aria-hidden />
                 </span>
@@ -353,7 +353,7 @@ export default function Assistant() {
           {/* Asked already this session — one tap to re-run a question rather
               than retyping it. Only appears once there is history to offer. */}
           {asked.length > 0 ? (
-            <div className="rounded-card border border-line bg-surface p-4">
+            <div className="card-premium p-4">
               <h2 className="text-[11.5px] font-semibold uppercase tracking-[0.12em] text-ink-subtle">
                 Asked this session
               </h2>

@@ -1,10 +1,13 @@
 import { cn } from '@/lib/utils'
 
+/* Gradients rather than flat fills: the lead end of the bar reads brighter,
+   which gives the fill a direction and keeps a long band of one colour from
+   looking like a painted rectangle. */
 const fillTone = {
-  brand: 'bg-brand',
-  ok: 'bg-ok',
-  warn: 'bg-warn',
-  danger: 'bg-danger',
+  brand: 'grad-accent',
+  ok: 'grad-success',
+  warn: 'grad-warning',
+  danger: 'bg-[linear-gradient(135deg,#ef4444,#f97316)]',
 } as const
 
 /**

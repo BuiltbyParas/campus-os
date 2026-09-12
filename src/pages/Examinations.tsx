@@ -72,7 +72,7 @@ export default function Examinations() {
       {exams.isPending ? (
         <div className="space-y-4">
           <Skeleton className="h-[188px] w-full rounded-card" />
-          <div className="rounded-card border border-line bg-surface p-5">
+          <div className="card-premium p-5">
             <SkeletonRows count={4} />
           </div>
         </div>
@@ -388,7 +388,7 @@ function ExamCard({ exam, at }: { exam: Exam; at: Date }) {
   const finished = daysUntil(exam.date, at) < 0
 
   return (
-    <article className="lift group rounded-card border border-line bg-surface p-5">
+    <article className="lift group card-premium p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="truncate text-[15px] font-semibold text-ink transition-colors duration-200 group-hover:text-brand-ink">

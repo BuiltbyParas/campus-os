@@ -39,7 +39,7 @@ export function ComplaintCard({ complaint }: { complaint: Complaint }) {
   return (
     <Link
       to={`/app/complaints/${complaint.id}`}
-      className="press group block rounded-card border border-line bg-surface p-4 hover:border-line-strong sm:p-5"
+      className="press group block card-premium p-4 hover:border-line-strong sm:p-5"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">

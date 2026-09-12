@@ -46,7 +46,7 @@ export function CampusPulse({ items, className }: { items: PulseItem[]; classNam
   return (
     <ul
       className={cn(
-        'divide-y divide-line overflow-hidden rounded-card border border-line bg-surface',
+        'divide-y divide-line overflow-hidden card-premium',
         className,
       )}
     >

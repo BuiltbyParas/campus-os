@@ -103,7 +103,7 @@ export function ProgressRing({
           strokeLinecap="round"
           strokeDasharray={`${dash} ${circumference - dash}`}
           stroke={`url(#${gradientId})`}
-          className="transition-[stroke-dasharray] duration-700 ease-out"
+          className="transition-[stroke-dasharray] duration-[1200ms] ease-[cubic-bezier(0.2,0.9,0.1,1)]"
         />
         {thresholdPoint ? (
           <line

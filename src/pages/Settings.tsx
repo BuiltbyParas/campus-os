@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { useStore } from '@/app/store'
 import { useTheme } from '@/app/theme'
 import { PageContainer, PageHeader } from '@/components/layout/PageContainer'
+import { Switch } from '@/components/ui/Choice'
 import { cn } from '@/lib/utils'
 import type { AppPreferences, NotificationPreferences } from '@/types'
 
@@ -19,65 +20,13 @@ function Section({
   children: React.ReactNode
 }) {
   return (
-    <section className="rounded-card border border-line bg-surface">
+    <section className="card-premium">
       <div className="border-b border-line px-5 py-4">
         <h2 className="text-[16px] font-semibold tracking-tight text-ink">{title}</h2>
         {description ? <p className="mt-1 text-[13px] text-ink-muted">{description}</p> : null}
       </div>
       <div className="px-5">{children}</div>
     </section>
-  )
-}
-
-/** Accessible switch built on a real checkbox, so it works with the keyboard. */
-function Toggle({
-  id,
-  label,
-  description,
-  checked,
-  onChange,
-}: {
-  id: string
-  label: string
-  description?: string
-  checked: boolean
-  onChange: (next: boolean) => void
-}) {
-  return (
-    <div className="flex items-start justify-between gap-4 border-b border-line py-4 last:border-b-0">
-      <label htmlFor={id} className="min-w-0 cursor-pointer">
-        <span className="block text-[14px] font-medium text-ink">{label}</span>
-        {description ? (
-          <span className="mt-0.5 block text-[12.5px] leading-relaxed text-ink-muted">
-            {description}
-          </span>
-        ) : null}
-      </label>
-
-      <button
-        id={id}
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        aria-label={label}
-        onClick={() => onChange(!checked)}
-        className={cn(
-          'relative mt-0.5 h-6 w-11 shrink-0 rounded-full border transition-colors duration-200',
-          /* The visible track stays 24px; the touch target is expanded to 44px
-             with a transparent pseudo-element so the thumb has something to hit. */
-          'after:absolute after:-inset-x-1 after:-inset-y-2.5 after:content-[""]',
-          checked ? 'border-brand bg-brand' : 'border-line bg-surface-muted',
-        )}
-      >
-        <span
-          aria-hidden
-          className={cn(
-            'absolute top-1/2 size-4 -translate-y-1/2 rounded-full bg-ink shadow-e1 transition-[left] duration-200',
-            checked ? 'left-[24px] bg-on-brand' : 'left-[3px] bg-ink-subtle',
-          )}
-        />
-      </button>
-    </div>
   )
 }
 
@@ -214,13 +163,13 @@ export default function Settings() {
       {/* ------------------------------------------------------ notifications */}
       <Section title="Notifications" description="Choose what is worth interrupting you for.">
         {notificationRows.map((row) => (
-          <Toggle
+          <Switch
             key={row.key}
-            id={`notify-${row.key}`}
             label={row.label}
             description={row.description}
             checked={notifications[row.key]}
             onChange={(next) => setNotificationPreference(row.key, next)}
+            className="border-b border-divider py-4 last:border-b-0"
           />
         ))}
       </Section>
@@ -228,13 +177,13 @@ export default function Settings() {
       {/* -------------------------------------------------------- preferences */}
       <Section title="Preferences">
         {preferenceRows.map((row) => (
-          <Toggle
+          <Switch
             key={row.key}
-            id={`pref-${row.key}`}
             label={row.label}
             description={row.description}
             checked={preferences[row.key]}
             onChange={(next) => setPreference(row.key, next)}
+            className="border-b border-divider py-4 last:border-b-0"
           />
         ))}
       </Section>

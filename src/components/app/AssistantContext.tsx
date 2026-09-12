@@ -57,7 +57,7 @@ export function AssistantContext({
 
   return (
     <aside className={cn('min-w-0', className)}>
-      <div className="rounded-card border border-line bg-surface p-4">
+      <div className="card-premium p-4">
         <div className="flex items-center gap-2">
           <span aria-hidden className="relative flex size-1.5">
             <span className="absolute inline-flex size-full rounded-full bg-ok opacity-60 [animation:pulse-ring_2.4s_ease-out_infinite]" />

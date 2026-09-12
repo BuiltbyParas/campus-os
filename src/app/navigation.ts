@@ -20,6 +20,14 @@ export interface NavItem {
   shortLabel?: string
   icon: LucideIcon
   end?: boolean
+  /**
+   * Which live count the rail should show against this row, if any.
+   *
+   * The name of a signal rather than a number: navigation is static data and
+   * must not reach into a query. `Sidebar` resolves these against the demo
+   * dataset, so a row can never advertise a count the page does not show.
+   */
+  badge?: 'attendance' | 'exams' | 'fees' | 'events' | 'complaints'
 }
 
 /**
@@ -33,22 +41,23 @@ export interface NavItem {
 export const navSections: { id: string; label?: string; items: NavItem[] }[] = [
   {
     id: 'main',
+    label: 'Main',
     items: [
       { to: '/app', label: 'Dashboard', icon: LayoutDashboard, end: true },
       { to: '/app/assistant', label: 'AI Assistant', shortLabel: 'Assistant', icon: Sparkles },
-      { to: '/app/attendance', label: 'Attendance', icon: ScanLine },
+      { to: '/app/attendance', label: 'Attendance', icon: ScanLine, badge: 'attendance' },
       { to: '/app/timetable', label: 'Timetable', icon: CalendarDays },
       { to: '/app/academics', label: 'Academics', icon: GraduationCap },
-      { to: '/app/exams', label: 'Examinations', shortLabel: 'Exams', icon: FileText },
+      { to: '/app/exams', label: 'Examinations', shortLabel: 'Exams', icon: FileText, badge: 'exams' },
     ],
   },
   {
-    id: 'admin',
-    label: 'Administration',
+    id: 'campus',
+    label: 'Campus',
     items: [
-      { to: '/app/fees', label: 'Fees', icon: Wallet },
-      { to: '/app/complaints', label: 'Complaints', icon: MessageSquareWarning },
-      { to: '/app/events', label: 'Events', icon: CalendarRange },
+      { to: '/app/fees', label: 'Fees', icon: Wallet, badge: 'fees' },
+      { to: '/app/events', label: 'Events', icon: CalendarRange, badge: 'events' },
+      { to: '/app/complaints', label: 'Complaints', icon: MessageSquareWarning, badge: 'complaints' },
     ],
   },
 ]

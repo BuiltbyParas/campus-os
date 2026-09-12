@@ -50,7 +50,7 @@ export default function Academics() {
       {results.isPending ? (
         <div className="space-y-4">
           <Skeleton className="h-[132px] w-full rounded-card" />
-          <div className="rounded-card border border-line bg-surface p-5">
+          <div className="card-premium p-5">
             <SkeletonRows count={4} />
           </div>
         </div>
@@ -68,7 +68,7 @@ export default function Academics() {
       ) : (
         <>
           {/* overall — the figure the page is about, given hero treatment */}
-          <section className="relative overflow-hidden rounded-card border border-line bg-surface p-5 sm:p-6">
+          <section className="relative overflow-hidden card-premium p-5 sm:p-6">
             <div
               aria-hidden
               className="pointer-events-none absolute -right-20 -top-24 size-64 rounded-full bg-brand/12 blur-[80px]"
@@ -137,7 +137,7 @@ export default function Academics() {
       )}
 
       {/* -------------------------------------------------- EDU-Revolution */}
-      <section className="rounded-card border border-line bg-surface p-5 sm:p-6">
+      <section className="card-premium p-5 sm:p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Award className="size-[18px] text-brand-ink" aria-hidden />
@@ -236,7 +236,7 @@ function CourseCard({ result }: { result: CourseResult }) {
   const window = revaluationWindow(result)
 
   return (
-    <article className="lift group rounded-card border border-line bg-surface p-5">
+    <article className="lift group card-premium p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="truncate text-[15px] font-semibold text-ink transition-colors duration-200 group-hover:text-brand-ink">

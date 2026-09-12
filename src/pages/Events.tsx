@@ -155,7 +155,7 @@ function Spotlight({
   const days = daysUntil(event.date)
 
   return (
-    <section className="relative overflow-hidden rounded-card border border-line bg-surface">
+    <section className="relative overflow-hidden card-premium">
       {/* Two light sources rather than one flat tint — the spotlight should feel
           lit from somewhere, which is what separates it from the rail below. */}
       <div aria-hidden className="pointer-events-none absolute inset-0">
@@ -314,7 +314,7 @@ function Rail({
               key={event.id}
               className="w-[268px] shrink-0 snap-start sm:w-[292px]"
             >
-              <article className="lift lift-accent group flex h-full flex-col rounded-card border border-line bg-surface p-5">
+              <article className="lift lift-accent group flex h-full flex-col card-premium p-5">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-ink-subtle">
                     {eventCategoryLabel[event.category]}

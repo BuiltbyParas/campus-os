@@ -155,6 +155,212 @@
   --glass-shadow: 0 20px 50px -22px oklch(0 0 0 / 0.85);
 }
 
+/* ==========================================================================
+   PREMIUM SURFACE — the signed-in app only
+   ==========================================================================
+
+   Everything below is scoped to `.app-surface`, which sits on the AppShell
+   root and nothing else. The marketing page is signed off and frozen, so the
+   only safe way to re-skin the product is to re-skin a *scope*: nothing here
+   can reach `.landing-surface`, the login screen, or any component they own.
+
+   These values are the enterprise palette — a deeper canvas than the previous
+   dark theme, a four-step elevation ladder, and an accent that carries three
+   related hues (indigo, violet, cyan) rather than one.
+   ========================================================================== */
+/* --------------------------------------------------------------------------
+   The premium surface, light.
+
+   Not the dark palette with the values flipped: on white, depth cannot come
+   from glow, so it comes from shadow, and the accent has to darken to hold its
+   contrast against a light ground. The product is dark-first by design and
+   Settings says so, but the appearance control is real, so this has to be a
+   finished surface rather than a fallback.
+   -------------------------------------------------------------------------- */
+.app-surface {
+  color-scheme: light;
+
+  --canvas: #f8fafc;
+  --canvas-2: #ffffff;
+  --surface: #ffffff;
+  --surface-muted: #f1f5f9;
+  --surface-raised: #ffffff;
+  --overlay: rgb(15 23 42 / 0.35);
+
+  --ink: #0f1419;
+  --ink-muted: #334155;
+  --ink-subtle: #64748b;
+  --ink-faint: #94a3b8;
+  --ink-inverse: #ffffff;
+
+  --line: rgb(99 102 241 / 0.16);
+  --line-strong: rgb(99 102 241 / 0.38);
+  --line-active: rgb(99 102 241 / 0.8);
+  --divider: rgb(15 20 25 / 0.06);
+
+  --brand: #5b52e8;
+  --brand-hover: #4c43d8;
+  --brand-soft: rgb(99 102 241 / 0.1);
+  --brand-border: rgb(99 102 241 / 0.32);
+  --brand-ink: #4f46e5;
+  --on-brand: #ffffff;
+  --accent-violet: #7c3aed;
+  --accent-cyan: #0891b2;
+  --gold: #d97706;
+  --silver: #94a3b8;
+
+  --ok: #059669;
+  --ok-soft: rgb(5 150 105 / 0.1);
+  --ok-ink: #047857;
+  --warn: #d97706;
+  --warn-soft: rgb(217 119 6 / 0.1);
+  --warn-ink: #b45309;
+  --danger: #dc2626;
+  --danger-soft: rgb(220 38 38 / 0.08);
+  --danger-ink: #b91c1c;
+  --info: #2563eb;
+  --info-soft: rgb(37 99 235 / 0.1);
+  --info-ink: #1d4ed8;
+
+  --grad-accent: linear-gradient(135deg, #6366f1, #8b5cf6);
+  --grad-cyan: linear-gradient(135deg, #0891b2, #2563eb);
+  --grad-success: linear-gradient(135deg, #059669, #0891b2);
+  --grad-warning: linear-gradient(135deg, #d97706, #db2777);
+  --grad-premium: linear-gradient(135deg, #f59e0b, #d97706);
+  --grad-dark: linear-gradient(135deg, #ffffff, #f1f5f9);
+  --grad-glass: linear-gradient(135deg, rgb(99 102 241 / 0.06), rgb(139 92 246 / 0.06));
+
+  /* Shadows carry the whole elevation ladder here, so they are tighter and
+     more opaque than their dark counterparts — a diffuse shadow on white
+     reads as a smudge rather than as height. */
+  --shadow-xs: 0 1px 3px rgb(15 23 42 / 0.06), 0 1px 2px rgb(15 23 42 / 0.04);
+  --shadow-sm: 0 4px 16px rgb(15 23 42 / 0.08), 0 2px 6px rgb(15 23 42 / 0.05);
+  --shadow-md: 0 12px 32px rgb(15 23 42 / 0.1), 0 6px 14px rgb(15 23 42 / 0.06);
+  --shadow-lg: 0 20px 48px rgb(15 23 42 / 0.14), 0 10px 24px rgb(15 23 42 / 0.08);
+
+  --glow-xs: 0 0 10px rgb(99 102 241 / 0.16);
+  --glow-s: 0 0 14px rgb(99 102 241 / 0.2);
+  --glow-m: 0 0 20px rgb(99 102 241 / 0.26);
+  --glow-l: 0 0 28px rgb(99 102 241 / 0.3);
+  --glow-cyan: 0 0 18px rgb(8 145 178 / 0.25);
+  --glow-inner: inset 0 0 24px rgb(99 102 241 / 0.05);
+  --glow-accent: var(--glow-xs);
+  --glow-brand: rgb(99 102 241 / 0.18);
+  --glow-info: rgb(8 145 178 / 0.14);
+
+  /* The recess an input or a search trigger sits in. On white it is a tint of
+     the canvas; on the dark surface it is a lift of white. Same role, opposite
+     direction — which is exactly why it has to be a token and not a literal. */
+  --field: #ffffff;
+  --field-hover: #f8fafc;
+  --field-raised: rgb(15 23 42 / 0.03);
+
+  --glass-veil: rgb(255 255 255 / 0.78);
+  --glass-veil-light: rgb(255 255 255 / 0.6);
+  --glass-edge: rgb(99 102 241 / 0.16);
+  --glass-sheen: rgb(15 23 42 / 0.04);
+  --glass-blur: 12px;
+  --glass-saturate: 1.5;
+  --glass-shadow: 0 12px 36px rgb(15 23 42 / 0.12);
+}
+
+.dark .app-surface {
+  color-scheme: dark;
+
+  /* ---- surfaces ---------------------------------------------------- */
+  --canvas: #0a0e17;
+  --canvas-2: #131829;
+  --surface: #1a202c;
+  --surface-muted: #151a27;
+  --surface-raised: #212936;
+  --overlay: rgb(0 0 0 / 0.6);
+
+  /* ---- text -------------------------------------------------------- */
+  --ink: #ffffff;
+  --ink-muted: #cbd5e1;
+  --ink-subtle: #94a3b8;
+  --ink-faint: #64748b;
+  --ink-inverse: #0a0e17;
+
+  /* ---- lines ------------------------------------------------------- */
+  --line: rgb(99 102 241 / 0.12);
+  --line-strong: rgb(99 102 241 / 0.3);
+  --line-active: rgb(99 102 241 / 0.8);
+  --divider: rgb(255 255 255 / 0.03);
+
+  /* ---- accents ----------------------------------------------------- */
+  --brand: #6366f1;
+  --brand-hover: #818cf8;
+  --brand-soft: rgb(99 102 241 / 0.12);
+  --brand-border: rgb(99 102 241 / 0.3);
+  --brand-ink: #a5b4fc;
+  --on-brand: #ffffff;
+  --accent-violet: #8b5cf6;
+  --accent-cyan: #06b6d4;
+  --gold: #fbbf24;
+  --silver: #e5e7eb;
+
+  /* ---- status ------------------------------------------------------ */
+  --ok: #10b981;
+  --ok-soft: rgb(16 185 129 / 0.12);
+  --ok-ink: #34d399;
+  --warn: #f59e0b;
+  --warn-soft: rgb(245 158 11 / 0.12);
+  --warn-ink: #fbbf24;
+  --danger: #ef4444;
+  --danger-soft: rgb(239 68 68 / 0.12);
+  --danger-ink: #f87171;
+  --info: #3b82f6;
+  --info-soft: rgb(59 130 246 / 0.12);
+  --info-ink: #93c5fd;
+
+  /* ---- gradients ---------------------------------------------------
+     Declared as tokens rather than written inline, so "the accent
+     gradient" is one thing everywhere and can be retuned in one place. */
+  --grad-accent: linear-gradient(135deg, #6366f1, #8b5cf6);
+  --grad-cyan: linear-gradient(135deg, #06b6d4, #3b82f6);
+  --grad-success: linear-gradient(135deg, #10b981, #06b6d4);
+  --grad-warning: linear-gradient(135deg, #f59e0b, #ec4899);
+  --grad-premium: linear-gradient(135deg, #fbbf24, #f59e0b);
+  --grad-dark: linear-gradient(135deg, #1a202c, #0a0e17);
+  --grad-glass: linear-gradient(135deg, rgb(99 102 241 / 0.1), rgb(139 92 246 / 0.1));
+
+  /* ---- elevation ---------------------------------------------------
+     Two shadows per step: a tight one that seats the edge, and a wide
+     soft one that carries the height. One shadow alone reads as a
+     sticker; two read as an object above a surface. */
+  --shadow-xs: 0 2px 12px rgb(0 0 0 / 0.15), 0 1px 3px rgb(0 0 0 / 0.1);
+  --shadow-sm: 0 8px 32px rgb(0 0 0 / 0.25), 0 4px 12px rgb(0 0 0 / 0.15);
+  --shadow-md: 0 16px 48px rgb(0 0 0 / 0.35), 0 8px 24px rgb(0 0 0 / 0.2);
+  --shadow-lg: 0 24px 64px rgb(0 0 0 / 0.4), 0 12px 32px rgb(0 0 0 / 0.25);
+
+  /* ---- glow --------------------------------------------------------
+     Glow is the interactive signal on this surface: elevation says "this
+     is above the page", glow says "this is alive". */
+  --glow-xs: 0 0 12px rgb(99 102 241 / 0.25);
+  --glow-s: 0 0 16px rgb(99 102 241 / 0.3);
+  --glow-m: 0 0 24px rgb(99 102 241 / 0.4);
+  --glow-l: 0 0 32px rgb(99 102 241 / 0.5);
+  --glow-cyan: 0 0 20px rgb(6 182 212 / 0.35);
+  --glow-inner: inset 0 0 24px rgb(99 102 241 / 0.08);
+  --glow-accent: var(--glow-xs);
+  --glow-brand: rgb(99 102 241 / 0.25);
+  --glow-info: rgb(6 182 212 / 0.18);
+
+  /* ---- glass -------------------------------------------------------- */
+  --field: rgb(255 255 255 / 0.05);
+  --field-hover: rgb(255 255 255 / 0.08);
+  --field-raised: rgb(255 255 255 / 0.04);
+
+  --glass-veil: rgb(19 24 41 / 0.72);
+  --glass-veil-light: rgb(19 24 41 / 0.55);
+  --glass-edge: rgb(99 102 241 / 0.16);
+  --glass-sheen: rgb(255 255 255 / 0.05);
+  --glass-blur: 12px;
+  --glass-saturate: 1.5;
+  --glass-shadow: 0 16px 48px rgb(0 0 0 / 0.35);
+}
+
 @theme inline {
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);
@@ -191,6 +397,23 @@
   --color-info-soft: var(--info-soft);
   --color-info-ink: var(--info-ink);
 
+  /* Premium-surface additions. They resolve to nothing outside
+     `.app-surface`, so a landing component cannot pick them up by accident. */
+  --color-ink-faint: var(--ink-faint);
+  --color-canvas-2: var(--canvas-2);
+  --color-accent-cyan: var(--accent-cyan);
+  --color-gold: var(--gold);
+  --color-silver: var(--silver);
+  --color-line-active: var(--line-active);
+  --color-divider: var(--divider);
+  --color-field: var(--field);
+  --color-field-hover: var(--field-hover);
+  --color-field-raised: var(--field-raised);
+
+  /* Three semantic radii, and deliberately no alias scale: names like
+     `--radius-l` or `--radius-xl` would register `rounded-l` / `rounded-xl`
+     utilities that shadow Tailwind's own, silently restyling every component
+     that uses them — the marketing page included. */
   --radius-card: 1rem;
   --radius-tile: 0.75rem;
   --radius-control: 0.625rem;
@@ -207,6 +430,16 @@
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
   /* Slight overshoot — the difference between "it moved" and "it responded". */
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-premium: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-elegant: cubic-bezier(0.2, 0.9, 0.1, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --shadow-glow-xs: var(--glow-xs);
+  --shadow-glow-s: var(--glow-s);
+  --shadow-glow-m: var(--glow-m);
+  --shadow-glow-l: var(--glow-l);
+  --shadow-glow-cyan: var(--glow-cyan);
+  --shadow-glow-inner: var(--glow-inner);
 }
 
 @layer base {
@@ -569,6 +802,206 @@
   .animate-float-slow {
     animation: float 9s var(--ease-out-soft) infinite;
   }
+
+  /* ======================================================================
+     PREMIUM UTILITIES — meaningful only inside `.app-surface`
+     ======================================================================
+
+     Each of these is a *material*, not a one-off style: a gradient the
+     product uses by name, a rung on the elevation ladder, a glow that says
+     "interactive". Components reference them, so retuning the look is an
+     edit here rather than a sweep through pages.
+     ====================================================================== */
+
+  /* ---- gradients ---------------------------------------------------- */
+  .grad-accent { background-image: var(--grad-accent); }
+  .grad-cyan { background-image: var(--grad-cyan); }
+  .grad-success { background-image: var(--grad-success); }
+  .grad-warning { background-image: var(--grad-warning); }
+  .grad-premium { background-image: var(--grad-premium); }
+  .grad-dark { background-image: var(--grad-dark); }
+  .grad-glass { background-image: var(--grad-glass); }
+
+  /* Gradient text, for a single headline figure — never for body copy,
+     where the low-contrast end of the ramp would hurt legibility. */
+  .grad-text {
+    background-image: var(--grad-accent);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* ---- elevation + glow --------------------------------------------- */
+  .elev-1 { box-shadow: var(--shadow-xs); }
+  .elev-2 { box-shadow: var(--shadow-sm); }
+  .elev-3 { box-shadow: var(--shadow-md); }
+  .elev-4 { box-shadow: var(--shadow-lg); }
+  .glow-xs { box-shadow: var(--glow-xs); }
+  .glow-s { box-shadow: var(--glow-s); }
+  .glow-m { box-shadow: var(--glow-m); }
+  .glow-l { box-shadow: var(--glow-l); }
+  .glow-cyan { box-shadow: var(--glow-cyan); }
+  .glow-inner { box-shadow: var(--glow-inner); }
+
+  /* ---- the premium card --------------------------------------------
+     One surface definition for every content card on the app surface, so
+     depth is consistent: a seated shadow at rest, and on hover a lift
+     with the accent arriving as both border and glow. */
+  .card-premium {
+    position: relative;
+    border-radius: 0.75rem;
+    border: 1.5px solid var(--line);
+    background-color: var(--surface);
+    box-shadow: var(--shadow-xs);
+    transition:
+      transform 250ms var(--ease-elegant),
+      box-shadow 250ms var(--ease-elegant),
+      border-color 250ms var(--ease-elegant),
+      background-color 250ms var(--ease-elegant);
+  }
+
+  .card-premium:hover {
+    border-color: var(--line-strong);
+    box-shadow: var(--shadow-sm), var(--glow-xs);
+  }
+
+  /* Only cards that lead somewhere lift — a lift on a card that cannot be
+     clicked is a promise the interface does not keep. */
+  .card-interactive:hover {
+    transform: translateY(-10px);
+    border-color: var(--line-strong);
+    box-shadow: var(--shadow-sm), var(--glow-s);
+  }
+
+  .card-interactive:active {
+    transform: translateY(-4px) scale(0.99);
+  }
+
+  /* ---- 3D tilt ------------------------------------------------------
+     The tilt itself is driven from JS (useTilt) through these two custom
+     properties; keeping the transform in CSS means one composited
+     property changes per frame. */
+  .tilt {
+    transform: perspective(1000px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg))
+      translateY(var(--tilt-lift, 0px));
+    transform-style: preserve-3d;
+    transition: transform 300ms var(--ease-elegant);
+    will-change: transform;
+  }
+
+  .tilt-layer {
+    transform: translateZ(30px);
+    transform-style: preserve-3d;
+  }
+
+  /* ---- click ripple -------------------------------------------------- */
+  .ripple-host {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ripple-ink {
+    position: absolute;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.28);
+    transform: translate(-50%, -50%) scale(0);
+    pointer-events: none;
+    animation: ripple 560ms var(--ease-elegant) forwards;
+  }
+
+  /* ---- animated gradient surfaces ------------------------------------
+     A 200% wide gradient panned very slowly. At 60s the movement is below
+     the threshold of notice on a glance and only reads over a long look,
+     which is the intent: depth, not animation. */
+  .grad-drift {
+    background-size: 200% 200%;
+    animation: grad-drift 60s linear infinite;
+  }
+
+  .grad-drift-fast {
+    background-size: 200% 200%;
+    animation: grad-drift 15s linear infinite;
+  }
+
+  /* ---- ambient orbs --------------------------------------------------- */
+  .orb {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(90px);
+    pointer-events: none;
+  }
+
+  .animate-orb { animation: orb-drift 26s ease-in-out infinite; }
+  .animate-orb-slow { animation: orb-drift 38s ease-in-out infinite reverse; }
+
+  /* A barely-there noise layer. On a large dark gradient it is what stops
+     8-bit colour from banding into visible steps. */
+  .noise::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ---- focus ---------------------------------------------------------
+     3px ring with a 4px offset gap, per the accessibility brief. Applied
+     via :focus-visible so it never appears on a mouse click. */
+  .app-surface :focus-visible {
+    outline: 3px solid var(--brand);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  .press-spring {
+    transition: transform 200ms var(--ease-premium);
+  }
+
+  .press-spring:active {
+    transform: scale(0.94);
+  }
+
+  .scrollbar-premium {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+  }
+
+  .scrollbar-premium::-webkit-scrollbar { width: 6px; height: 6px; }
+  .scrollbar-premium::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar-premium::-webkit-scrollbar-thumb {
+    background: var(--line-strong);
+    border-radius: 999px;
+  }
+}
+
+@keyframes ripple {
+  to {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes grad-drift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes orb-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(40px, -30px) scale(1.08); }
+  66% { transform: translate(-30px, 25px) scale(0.95); }
+}
+
+@keyframes count-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+@keyframes draw-check {
+  to { stroke-dashoffset: 0; }
 }
 
 @keyframes float {

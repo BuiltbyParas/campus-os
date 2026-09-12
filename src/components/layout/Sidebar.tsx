@@ -4,46 +4,86 @@ import { NavLink } from 'react-router-dom'
 import { accountNav, navSections, type NavItem } from '@/app/navigation'
 import { useStore } from '@/app/store'
 import { cn } from '@/lib/utils'
+import { useToday } from '@/services/queries'
 
-import { Logo } from './Logo'
+import { Logo, LogoMark } from './Logo'
 
-function SidebarLink({ item }: { item: NavItem }) {
+type BadgeCounts = Partial<Record<NonNullable<NavItem['badge']>, { value: string; tone: string }>>
+
+/**
+ * A navigation row.
+ *
+ * The active state is carried by three things at once — a tinted surface, a
+ * rail on the leading edge, and the icon taking the accent — because a single
+ * background tint is easy to lose against a dark canvas, and "where am I" is
+ * the one question navigation must never leave ambiguous.
+ */
+function SidebarLink({
+  item,
+  badge,
+}: {
+  item: NavItem
+  badge?: { value: string; tone: string }
+}) {
   return (
     <NavLink
       to={item.to}
       end={item.end}
+      /* Between `md` and `lg` the rail is icons only, so the native tooltip is
+         what names the destination. Above `lg` the label is on screen and the
+         browser suppresses nothing — the title simply repeats it. */
+      title={item.label}
       className={({ isActive }) =>
         cn(
-          'group relative flex h-11 items-center gap-3 rounded-control px-3 text-[14px] font-medium',
-          'transition-[color,background-color,transform] duration-200 active:scale-[0.98]',
-          isActive ? 'text-ink' : 'text-ink-muted hover:bg-brand/[0.08] hover:text-ink',
+          'group relative flex h-12 items-center gap-3 rounded-tile text-[14px] font-medium tracking-[0.3px]',
+          'transition-[color,background-color,transform,box-shadow] duration-200',
+          'justify-center px-0 lg:justify-start lg:px-3.5',
+          isActive
+            ? 'bg-brand/20 text-ink elev-1'
+            : 'text-ink-subtle hover:-translate-y-0.5 hover:bg-brand/[0.12] hover:text-ink hover:elev-1',
         )
       }
     >
       {({ isActive }) => (
         <>
-          {/* The active surface is a solid tint, not glass: glass belongs to the
-              bar itself, and nesting it here would muddy both layers. */}
-          {isActive ? (
-            <>
-              <span aria-hidden className="absolute inset-0 rounded-control bg-brand-soft" />
-              {/* A bar on the trailing edge, pointing at the content it opens —
-                  the pill alone reads as a highlight, the bar reads as *you are
-                  here*. */}
-              <span
-                aria-hidden
-                className="absolute inset-y-1.5 right-0 w-[3px] rounded-full bg-brand"
-              />
-            </>
-          ) : null}
+          <span
+            aria-hidden
+            className={cn(
+              'absolute inset-y-2 left-0 w-[3px] rounded-full transition-[opacity,transform] duration-200',
+              'grad-accent',
+              isActive
+                ? 'opacity-100'
+                : 'opacity-0 group-hover:opacity-60',
+            )}
+          />
           <item.icon
             className={cn(
-              'relative size-[18px] shrink-0 transition-colors duration-200',
-              isActive ? 'text-brand-ink' : 'text-ink-subtle group-hover:text-ink-muted',
+              'size-[22px] shrink-0 transition-[color,transform] duration-200',
+              isActive
+                ? 'text-brand-ink drop-shadow-[0_0_6px_rgb(99_102_241_/_0.6)]'
+                : 'text-ink-faint group-hover:scale-110 group-hover:text-ink-muted',
             )}
             aria-hidden
           />
-          <span className="relative truncate">{item.label}</span>
+
+          <span className="hidden min-w-0 flex-1 truncate lg:block">{item.label}</span>
+
+          {badge ? (
+            /* In the 90px rail the badge is a dot on the corner — a number is
+               not legible at that size, and the row has no room for one. The
+               value itself returns with the labels at `lg`. */
+            <span
+              title={badge.value}
+              className={cn(
+                'shrink-0 rounded-full font-bold tabular-nums',
+                'absolute right-2 top-2 size-2 lg:static lg:px-2 lg:py-0.5 lg:text-[10.5px]',
+                badge.tone,
+              )}
+            >
+              <span className="hidden lg:inline">{badge.value}</span>
+              <span className="sr-only lg:hidden">{badge.value}</span>
+            </span>
+          ) : null}
         </>
       )}
     </NavLink>
@@ -51,70 +91,126 @@ function SidebarLink({ item }: { item: NavItem }) {
 }
 
 /**
- * Desktop navigation. A fixed glass rail rather than a solid panel, so the
- * ambient colour of the page reads faintly through it as you scroll.
+ * Desktop navigation.
+ *
+ * 280px on a full desktop; a 90px icon rail from `md` to `lg`, where the
+ * viewport can spare the column but not the words. Below `md` it is gone
+ * entirely and the thumb bar takes over.
  */
 export function Sidebar({ onOpenCommandPalette }: { onOpenCommandPalette: () => void }) {
   const { student } = useStore()
+  const { view } = useToday(new Date())
+
+  /* Counts come from the same view every page renders, so a rail badge can
+     never claim something the destination does not show. */
+  const badges: BadgeCounts = {}
+  if (view.weakestCourse && view.weakestCourse.status !== 'safe') {
+    badges.attendance = {
+      value: `${Math.round(view.weakestCourse.percentage)}%`,
+      tone: view.weakestCourse.status === 'below'
+        ? 'bg-danger-soft text-danger-ink'
+        : 'bg-warn-soft text-warn-ink',
+    }
+  }
+  if (view.openRequests.length > 0) {
+    badges.complaints = {
+      value: String(view.openRequests.length),
+      tone: 'bg-brand-soft text-brand-ink',
+    }
+  }
+  if (view.exams?.next) {
+    badges.exams = { value: 'soon', tone: 'bg-warn-soft text-warn-ink' }
+  }
+  if (view.fees?.nextDue) {
+    badges.fees = { value: 'due', tone: 'bg-warn-soft text-warn-ink' }
+  }
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-40 hidden w-[248px] lg:block">
-      <div className="glass-nav flex h-full flex-col rounded-none border-y-0 border-l-0 px-4 py-5">
-        <NavLink to="/app" end className="mb-7 inline-flex rounded-lg px-1" aria-label="CampusOS dashboard">
-          <Logo />
+    <aside className="fixed inset-y-0 left-0 z-40 hidden w-[90px] md:block lg:w-[280px]">
+      <div className="flex h-full flex-col border-r-[1.5px] border-line bg-[linear-gradient(180deg,var(--canvas),color-mix(in_oklab,var(--surface)_80%,transparent))] px-3 py-5 lg:px-4">
+        {/* ------------------------------------------------------------ brand */}
+        <NavLink
+          to="/app"
+          end
+          className="mb-6 flex flex-col items-center gap-1 rounded-tile px-1 lg:items-start"
+          aria-label="CampusOS dashboard"
+        >
+          {/* In the 90px rail only the mark fits, so the wordmark is swapped
+              in at `lg` rather than being squeezed and clipped. */}
+          <LogoMark className="lg:hidden" />
+          <Logo className="hidden lg:flex" />
+          {/* The tagline sits under the wordmark rather than beside it: beside
+              it, two type sizes on one baseline read as a broken lockup. */}
+          <span
+            aria-hidden
+            className="hidden pl-[42px] text-[9.5px] font-semibold uppercase tracking-[1.5px] text-ink-faint lg:block"
+          >
+            Intelligence layer
+          </span>
         </NavLink>
 
-        {/* The command palette is the fastest route to anything, so it sits
-            above the navigation rather than hidden behind a shortcut. */}
+        {/* ----------------------------------------------------------- search */}
         <button
           type="button"
           onClick={onOpenCommandPalette}
-          className="press mb-4 flex w-full items-center gap-2.5 rounded-control border border-line bg-surface/60 px-3 py-2.5 text-left text-[13.5px] text-ink-subtle transition-colors hover:border-line-strong hover:text-ink-muted"
+          className={cn(
+            'press-spring mb-5 flex h-11 w-full items-center gap-2.5 rounded-control border-[1.5px] border-line bg-field px-3',
+            'text-left text-[13.5px] text-ink-faint transition-[border-color,color,box-shadow] duration-200',
+            'hover:border-line-strong hover:text-ink-muted hover:shadow-[var(--glow-xs)]',
+            'justify-center lg:justify-start',
+          )}
+          aria-label="Search or jump to"
         >
-          <Search className="size-4 shrink-0" aria-hidden />
-          <span className="flex-1 truncate">Search or jump to…</span>
-          <kbd className="shrink-0 rounded border border-line px-1.5 py-0.5 text-[10.5px] font-medium">
+          <Search className="size-[18px] shrink-0" aria-hidden />
+          <span className="hidden flex-1 truncate lg:block">Search anything…</span>
+          <kbd className="hidden shrink-0 rounded border border-line px-1.5 py-0.5 text-[10.5px] font-semibold lg:block">
             ⌘K
           </kbd>
         </button>
 
-        {/* The rail scrolls on short viewports; the account block below stays
-            pinned, so identity never scrolls out of reach. */}
-        <nav aria-label="Primary" className="scrollbar-thin -mr-1 flex-1 overflow-y-auto pr-1">
+        {/* ------------------------------------------------------ destinations */}
+        <nav
+          aria-label="Primary"
+          className="scrollbar-premium -mr-1 flex-1 overflow-y-auto pr-1"
+        >
           {navSections.map((section) => (
-            <div key={section.id} className={cn(section.label && 'mt-6')}>
+            <div key={section.id} className="mb-6">
               {section.label ? (
-                <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.5px] text-ink-subtle">
+                <p className="mb-2 hidden px-3 text-[10px] font-bold uppercase tracking-[1px] text-ink-faint lg:block">
                   {section.label}
                 </p>
               ) : null}
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1.5">
                 {section.items.map((item) => (
-                  <SidebarLink key={item.to} item={item} />
+                  <SidebarLink
+                    key={item.to}
+                    item={item}
+                    badge={item.badge ? badges[item.badge] : undefined}
+                  />
                 ))}
               </div>
             </div>
           ))}
         </nav>
 
-        <nav
-          aria-label="Account"
-          className="mt-4 flex shrink-0 flex-col gap-1 border-t border-line pt-4"
-        >
-          {accountNav.map((item) => (
-            <SidebarLink key={item.to} item={item} />
-          ))}
+        {/* ---------------------------------------------------------- account */}
+        <nav aria-label="Account" className="mt-2 shrink-0 border-t border-divider pt-4">
+          <div className="flex flex-col gap-1.5">
+            {accountNav.map((item) => (
+              <SidebarLink key={item.to} item={item} />
+            ))}
+          </div>
 
           <NavLink
             to="/app/profile"
-            className="mt-3 flex items-center gap-3 rounded-control border border-line bg-surface/60 p-2.5 transition-colors duration-200 hover:border-line-strong"
+            className="mt-3 hidden items-center gap-3 rounded-tile border-[1.5px] border-line bg-field-raised p-2.5 transition-[border-color,box-shadow] duration-200 hover:border-line-strong hover:shadow-[var(--glow-xs)] lg:flex"
           >
-            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-brand-soft text-[12px] font-semibold text-brand-ink">
+            <span className="grad-accent grid size-9 shrink-0 place-items-center rounded-full text-[12px] font-bold text-on-brand">
               {student.initials}
             </span>
             <span className="min-w-0">
-              <span className="block truncate text-[13px] font-medium text-ink">{student.name}</span>
-              <span className="block truncate text-[11.5px] text-ink-subtle">
+              <span className="block truncate text-[13px] font-semibold text-ink">{student.name}</span>
+              <span className="block truncate text-[11px] text-ink-faint">
                 {student.program} · Semester {student.semester}
               </span>
             </span>

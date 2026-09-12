@@ -46,3 +46,32 @@ export const pressable = {
   whileTap: { scale: 0.975 },
   transition: { duration: 0.12, ease: easeOutSoft },
 }
+
+/* -------------------------------------------------------------- premium */
+
+/** The brief's easing set, as framer-motion tuples. */
+export const easePremium: Transition['ease'] = [0.34, 1.56, 0.64, 1]
+export const easeElegant: Transition['ease'] = [0.2, 0.9, 0.1, 1]
+
+/**
+ * Page-load reveal.
+ *
+ * Blocks rise and fade in sequence rather than all at once, which is what
+ * makes a dense screen read as being *composed* rather than dumped. The
+ * stagger is 60ms — long enough to perceive as order, short enough that the
+ * last card is on screen well inside a third of a second.
+ */
+export const revealContainer: Variants = {
+  initial: {},
+  animate: { transition: { staggerChildren: 0.06, delayChildren: 0.04 } },
+}
+
+export const revealItem: Variants = {
+  initial: { opacity: 0, y: 18, scale: 0.985 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.4, ease: [0.2, 0.9, 0.1, 1] },
+  },
+}

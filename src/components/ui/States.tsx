@@ -20,18 +20,18 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center rounded-card border border-dashed border-line bg-surface/60 px-6 py-14 text-center',
+        'card-premium flex flex-col items-center justify-center border-dashed px-6 py-16 text-center',
         className,
       )}
     >
-      <div className="mb-3 grid size-11 place-items-center rounded-full bg-surface-muted text-ink-subtle">
-        {icon ?? <SearchX className="size-5" aria-hidden />}
+      <div className="mb-4 grid size-14 place-items-center rounded-full border border-line bg-brand-soft text-brand-ink">
+        {icon ?? <SearchX className="size-6" aria-hidden />}
       </div>
-      <p className="text-[15px] font-semibold text-ink">{title}</p>
+      <p className="text-[17px] font-bold text-ink">{title}</p>
       {description ? (
-        <p className="mt-1 max-w-sm text-sm text-ink-muted">{description}</p>
+        <p className="mt-1.5 max-w-sm text-[14px] leading-relaxed text-ink-muted">{description}</p>
       ) : null}
-      {action ? <div className="mt-5">{action}</div> : null}
+      {action ? <div className="mt-6">{action}</div> : null}
     </div>
   )
 }
@@ -51,15 +51,15 @@ export function ErrorState({
     <div
       role="alert"
       className={cn(
-        'flex flex-col items-center justify-center rounded-card border border-danger-soft bg-danger-soft/40 px-6 py-12 text-center',
+        'card-premium flex flex-col items-center justify-center border-danger/30 bg-danger-soft/30 px-6 py-14 text-center',
         className,
       )}
     >
-      <div className="mb-3 grid size-11 place-items-center rounded-full bg-danger-soft text-danger-ink">
-        <AlertTriangle className="size-5" aria-hidden />
+      <div className="mb-4 grid size-14 place-items-center rounded-full border border-danger/30 bg-danger-soft text-danger-ink">
+        <AlertTriangle className="size-6" aria-hidden />
       </div>
-      <p className="text-[15px] font-semibold text-ink">{title}</p>
-      <p className="mt-1 max-w-sm text-sm text-ink-muted">{description}</p>
+      <p className="text-[17px] font-bold text-ink">{title}</p>
+      <p className="mt-1.5 max-w-sm text-[14px] leading-relaxed text-ink-muted">{description}</p>
       {onRetry ? (
         <Button
           variant="secondary"

@@ -50,7 +50,7 @@ export default function Notifications() {
       />
 
       {notifications.isPending ? (
-        <div className="rounded-card border border-line bg-surface p-5">
+        <div className="card-premium p-5">
           <SkeletonRows count={4} />
         </div>
       ) : notifications.isError ? (
@@ -58,7 +58,7 @@ export default function Notifications() {
       ) : items.length === 0 ? (
         <EmptyState title="Nothing here yet" description="Updates about your campus life land here." />
       ) : (
-        <ul className="divide-y divide-line overflow-hidden rounded-card border border-line bg-surface">
+        <ul className="divide-y divide-line overflow-hidden card-premium">
           {items.map((item) => {
             const Icon = icons[item.type]
             const read = isRead(item.id, item.read)

@@ -46,7 +46,7 @@ export default function Profile() {
       />
 
       {/* ------------------------------------------------------------ identity */}
-      <section className="rounded-card border border-line bg-surface p-5 sm:p-6">
+      <section className="card-premium p-5 sm:p-6">
         <div className="flex items-center gap-4">
           <span className="grid size-16 shrink-0 place-items-center rounded-full bg-brand-soft text-[19px] font-semibold text-brand-ink">
             {student.initials}
@@ -80,7 +80,7 @@ export default function Profile() {
           <Link
             key={stat.label}
             to={stat.to}
-            className="press group rounded-card border border-line bg-surface p-4 hover:border-line-strong"
+            className="press group card-premium p-4 hover:border-line-strong"
           >
             <div className="flex items-start justify-between gap-2">
               <p className="text-[12.5px] text-ink-subtle">{stat.label}</p>
@@ -97,7 +97,7 @@ export default function Profile() {
       </section>
 
       {/* ------------------------------------------------------------- courses */}
-      <section className="rounded-card border border-line bg-surface p-5 sm:p-6">
+      <section className="card-premium p-5 sm:p-6">
         <div className="mb-4 flex items-center gap-2">
           <h2 className="text-[17px] font-semibold tracking-tight text-ink">
             Semester {student.semester} courses

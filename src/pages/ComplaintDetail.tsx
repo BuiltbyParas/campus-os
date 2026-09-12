@@ -41,7 +41,7 @@ export default function ComplaintDetail() {
       <PageContainer width="narrow" className="space-y-5">
         <Skeleton className="h-4 w-28" />
         <Skeleton className="h-8 w-2/3" />
-        <div className="rounded-card border border-line bg-surface p-5">
+        <div className="card-premium p-5">
           <SkeletonRows count={5} />
         </div>
       </PageContainer>
@@ -148,7 +148,7 @@ export default function ComplaintDetail() {
             ? 'rounded-card border border-ok/25 bg-ok-soft/30 p-5'
             : awaitingStudent
               ? 'rounded-card border border-warn/25 bg-warn-soft/30 p-5'
-              : 'rounded-card border border-line bg-surface p-5'
+              : 'card-premium p-5'
         }
       >
         <p className="text-[12px] font-medium uppercase tracking-[0.1em] text-ink-subtle">
@@ -202,7 +202,7 @@ export default function ComplaintDetail() {
       </section>
 
       {/* --------------------------------------------------------- tracking */}
-      <section className="rounded-card border border-line bg-surface p-5 sm:p-6">
+      <section className="card-premium p-5 sm:p-6">
         <h2 className="mb-5 text-[17px] font-semibold tracking-tight text-ink">Progress</h2>
         <ComplaintTracker complaint={data} />
       </section>

@@ -249,7 +249,7 @@ export function CampusCore({
 
   if (isPending) {
     return (
-      <div className="rounded-card border border-line bg-surface p-6">
+      <div className="card-premium p-6">
         <div className="grid items-center gap-8 lg:grid-cols-[1fr_420px]">
           <div className="space-y-3">
             <Skeleton className="h-4 w-28" />
@@ -314,7 +314,7 @@ export function CampusCore({
   }
 
   return (
-    <div className="relative overflow-hidden rounded-card border border-line bg-surface">
+    <div className="relative overflow-hidden card-premium">
       {/* light pooled behind the scene, so the core sits in a space rather
           than on a flat card */}
       <div

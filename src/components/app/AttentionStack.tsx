@@ -58,7 +58,7 @@ export function AttentionStack({
     return (
       <div
         className={cn(
-          'flex items-center gap-3 rounded-card border border-line bg-surface px-4 py-4',
+          'flex items-center gap-3 card-premium px-4 py-4',
           className,
         )}
       >
@@ -81,7 +81,7 @@ export function AttentionStack({
   return (
     <div className={cn('min-w-0', className)}>
       {/* ------------------------------------------------------------- lead */}
-      <article className="lift group relative overflow-hidden rounded-card border border-line bg-surface">
+      <article className="lift group relative overflow-hidden card-premium">
         {/* The rail thickens on hover rather than changing colour — the colour
             already means something, so it must not move. */}
         <span
@@ -157,7 +157,7 @@ export function AttentionStack({
 
       {/* ------------------------------------------------------------- rest */}
       {rest.length > 0 ? (
-        <ul className="mt-2 divide-y divide-line overflow-hidden rounded-card border border-line bg-surface">
+        <ul className="mt-2 divide-y divide-line overflow-hidden card-premium">
           {rest.map((signal) => {
             const style = tone[signal.tone]
             return (

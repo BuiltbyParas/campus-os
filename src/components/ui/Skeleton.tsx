@@ -17,7 +17,7 @@ export function SkeletonText({ lines = 2, className }: { lines?: number; classNa
 /** Matches the footprint of a content card so layout does not jump on load. */
 export function SkeletonCard({ className }: { className?: string }) {
   return (
-    <div className={cn('rounded-card border border-line bg-surface p-5', className)}>
+    <div className={cn('card-premium p-5', className)}>
       <Skeleton className="h-3 w-20" />
       <Skeleton className="mt-3 h-4 w-3/4" />
       <SkeletonText lines={2} className="mt-4" />

@@ -92,7 +92,7 @@ export default function Timetable() {
       {loading ? (
         <div className="space-y-4">
           <Skeleton className="h-[196px] w-full rounded-card" />
-          <div className="rounded-card border border-line bg-surface p-5">
+          <div className="card-premium p-5">
             <SkeletonRows count={4} />
           </div>
         </div>
@@ -126,7 +126,7 @@ export default function Timetable() {
                 <>
                   {/* the shape of the day, with the live position marked */}
                   {activeAgenda.length > 0 ? (
-                    <section className="rounded-card border border-line bg-surface px-5 pb-3 pt-4 sm:px-6">
+                    <section className="card-premium px-5 pb-3 pt-4 sm:px-6">
                       <DayAxis
                         items={activeAgenda}
                         at={view === 'tomorrow' ? tomorrowStart : now}
@@ -134,7 +134,7 @@ export default function Timetable() {
                     </section>
                   ) : null}
 
-                  <section className="rounded-card border border-line bg-surface">
+                  <section className="card-premium">
                     <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
                       <h2 className="text-[16px] font-semibold tracking-tight text-ink">
                         {activeDay ? weekdayLabel[activeDay] : 'No classes'}
@@ -181,7 +181,7 @@ function WeekGrid({
 }) {
   return (
     <section>
-      <div className="overflow-x-auto rounded-card border border-line bg-surface">
+      <div className="overflow-x-auto card-premium">
         <div className="grid min-w-[720px] grid-cols-6 gap-px bg-line">
           {weekdays.map((day) => {
             const dayClasses = sessionsForDay(sessions, day)

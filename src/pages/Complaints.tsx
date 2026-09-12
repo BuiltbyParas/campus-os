@@ -39,7 +39,7 @@ function ActiveComplaint({ complaint }: { complaint: Complaint }) {
   }))
 
   return (
-    <section className="relative overflow-hidden rounded-card border border-line bg-surface">
+    <section className="relative overflow-hidden card-premium">
       <div
         aria-hidden
         className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full bg-brand/12 blur-[90px]"

@@ -54,7 +54,7 @@ export default function Fees() {
           {/* ------------------------------------------------------- the ask */}
           {/* One number, given the whole width. A fee screen that opens on a
               table makes the student compute the only figure they came for. */}
-          <section className="relative overflow-hidden rounded-card border border-line bg-surface">
+          <section className="relative overflow-hidden card-premium">
             <div
               aria-hidden
               className="pointer-events-none absolute -right-20 -top-28 size-[380px] rounded-full bg-brand/14 blur-[100px]"
@@ -120,7 +120,7 @@ export default function Fees() {
           {/* A ledger as a spine rather than a table: instalments are events in
               time, and the gap between "paid in July" and "due next month" is
               the information a row of cells throws away. */}
-          <section className="rounded-card border border-line bg-surface p-5 sm:p-6">
+          <section className="card-premium p-5 sm:p-6">
             <h2 className="text-[17px] font-semibold tracking-tight text-ink">Payment timeline</h2>
             <ol className="mt-5">
               {summary.instalments.map((instalment, index) => (
@@ -135,7 +135,7 @@ export default function Fees() {
           </section>
 
           {/* ------------------------------------------------------ breakdown */}
-          <section className="rounded-card border border-line bg-surface p-5 sm:p-6">
+          <section className="card-premium p-5 sm:p-6">
             <h2 className="text-[17px] font-semibold tracking-tight text-ink">
               What the fee covers
             </h2>

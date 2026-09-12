@@ -49,7 +49,7 @@ export function AttendanceProjection({
   }))
 
   return (
-    <section className={cn('rounded-card border border-line bg-surface p-5 sm:p-6', className)}>
+    <section className={cn('card-premium p-5 sm:p-6', className)}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-[17px] font-semibold tracking-tight text-ink">Plan ahead</h2>
