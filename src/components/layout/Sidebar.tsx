@@ -76,7 +76,7 @@ function SidebarLink({
               title={badge.value}
               className={cn(
                 'shrink-0 rounded-full font-bold tabular-nums',
-                'absolute right-2 top-2 size-2 lg:static lg:px-2 lg:py-0.5 lg:text-[10.5px]',
+                'absolute right-2 top-2 size-2 lg:static lg:size-auto lg:px-2 lg:py-0.5 lg:text-[10.5px]',
                 badge.tone,
               )}
             >
