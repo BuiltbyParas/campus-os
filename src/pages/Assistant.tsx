@@ -1,4 +1,4 @@
-import { ArrowUp, RotateCcw, Sparkles } from 'lucide-react'
+import { ArrowUp, MessageCircleQuestion, RotateCcw, Sparkles } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
@@ -98,7 +98,7 @@ function Bubble({ message }: { message: ChatMessage }) {
           <Sparkles className="size-3.5 text-brand-ink" aria-hidden />
         </span>
 
-        <div className="min-w-0 flex-1 rounded-2xl rounded-tl-md border border-line bg-surface p-4">
+        <div className="min-w-0 flex-1 rounded-2xl rounded-tl-md border border-line bg-surface p-5">
           {message.pending ? (
             <div aria-label="Checking your records">
               <p className="text-[13px] text-ink-muted">Checking your records…</p>
@@ -116,7 +116,7 @@ function Bubble({ message }: { message: ChatMessage }) {
             </div>
           ) : (
             <>
-              <p className="text-[14.5px] leading-relaxed text-ink">{message.content}</p>
+              <p className="text-[14.5px] leading-[1.6] text-ink">{message.content}</p>
 
               {message.data && message.data.length > 0 ? <DataStrip data={message.data} /> : null}
               {message.sources && message.sources.length > 0 ? (
@@ -129,7 +129,7 @@ function Bubble({ message }: { message: ChatMessage }) {
                     <Link
                       key={action.to}
                       to={action.to}
-                      className="press inline-flex items-center rounded-control border border-line bg-surface-raised px-3 py-1.5 text-[12.5px] font-medium text-ink hover:border-line-strong"
+                      className="lift lift-accent inline-flex items-center rounded-control border border-line bg-surface-raised px-3 py-2 text-[12.5px] font-medium text-ink"
                     >
                       {action.label}
                     </Link>
@@ -272,15 +272,21 @@ export default function Assistant() {
                   answer. It never states a university policy as fact — demo rules are labelled.
                 </p>
 
-                <ul className="mt-5 grid gap-2 sm:grid-cols-2">
+                <ul className="mt-5 grid gap-3 sm:grid-cols-2">
                   {assistantSuggestions.map((suggestion) => (
                     <li key={suggestion}>
                       <button
                         type="button"
                         onClick={() => void send(suggestion)}
-                        className="press h-full w-full rounded-control border border-line bg-surface-raised px-3.5 py-3 text-left text-[13.5px] text-ink-muted hover:border-line-strong hover:text-ink"
+                        className="lift lift-accent group flex h-full w-full items-start gap-2.5 rounded-control border border-line bg-surface-raised p-5 text-left"
                       >
-                        {suggestion}
+                        <MessageCircleQuestion
+                          className="mt-px size-4 shrink-0 text-ink-subtle transition-[color,transform] duration-200 group-hover:scale-110 group-hover:text-brand-ink"
+                          aria-hidden
+                        />
+                        <span className="text-[13.5px] leading-snug text-ink-muted transition-colors duration-200 group-hover:text-ink">
+                          {suggestion}
+                        </span>
                       </button>
                     </li>
                   ))}
@@ -305,7 +311,11 @@ export default function Assistant() {
 
           {/* ---------------------------------------------------------- composer */}
           <div className="sticky bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-10 mt-6 lg:bottom-6">
-            <GlassPanel as="form" onSubmit={handleSubmit} className="rounded-2xl p-2">
+            <GlassPanel
+              as="form"
+              onSubmit={handleSubmit}
+              className="rounded-2xl p-2 transition-shadow duration-200 focus-within:shadow-[0_0_0_2px_var(--brand-border)]"
+            >
               <div className="flex items-center gap-2">
                 <label htmlFor="assistant-input" className="sr-only">
                   Ask the assistant

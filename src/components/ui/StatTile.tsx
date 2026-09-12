@@ -1,4 +1,4 @@
-import { ArrowUpRight } from 'lucide-react'
+import { ArrowUpRight, type LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -37,6 +37,7 @@ export function StatTile({
   detail,
   tone = 'info',
   visual,
+  icon: Icon,
   to,
   className,
 }: {
@@ -47,13 +48,21 @@ export function StatTile({
   tone?: SignalTone
   /** A `Meter`, `Sparkline` or similar. */
   visual?: ReactNode
+  /** Sits left of the label, and picks up the accent on hover. */
+  icon?: LucideIcon
   to?: string
   className?: string
 }) {
   const body = (
     <>
       <div className="flex items-start justify-between gap-2">
-        <p className="truncate text-[11.5px] font-medium uppercase tracking-[0.08em] text-ink-subtle">
+        <p className="flex min-w-0 items-center gap-1.5 truncate text-[11.5px] font-medium uppercase tracking-[0.08em] text-ink-subtle">
+          {Icon ? (
+            <Icon
+              className="size-3.5 shrink-0 transition-[color,transform] duration-200 group-hover:scale-110 group-hover:text-brand-ink"
+              aria-hidden
+            />
+          ) : null}
           {label}
         </p>
         {to ? (
@@ -66,8 +75,9 @@ export function StatTile({
 
       <p
         className={cn(
-          'mt-2 truncate text-[26px] font-semibold leading-none tracking-tight tabular-nums',
+          'mt-2 truncate text-[26px] font-semibold leading-none tracking-tight tabular-nums transition-colors duration-200',
           valueTone[tone],
+          to && 'group-hover:text-brand-ink',
         )}
       >
         {value}
@@ -84,7 +94,9 @@ export function StatTile({
   const chrome = cn(
     /* The tone rail: a 2px edge rather than a coloured background, so a grid of
        tiles stays calm even when several of them are warning. */
-    'relative overflow-hidden rounded-tile border border-line bg-surface p-4',
+    /* 20px padding, per the spec — roomy enough that the figure is not
+       crowded by its own container. */
+    'relative overflow-hidden rounded-tile border border-line bg-surface p-5',
     'before:absolute before:inset-y-0 before:left-0 before:w-[2px] before:content-[""]',
     edgeTone[tone],
     className,
@@ -92,7 +104,7 @@ export function StatTile({
 
   if (to) {
     return (
-      <Link to={to} className={cn(chrome, 'press group block hover:border-line-strong')}>
+      <Link to={to} className={cn(chrome, 'lift group block')}>
         {body}
       </Link>
     )

@@ -61,12 +61,12 @@ export function SeatMap({ seat, className }: { seat: ExamSeat; className?: strin
                   <span
                     key={index}
                     className={cn(
-                      'h-2.5 flex-1 rounded-[2px] transition-colors',
+                      'h-2.5 flex-1 rounded-[2px] transition-[background-color,transform] duration-200 hover:scale-y-150',
                       mine
                         ? 'bg-brand shadow-[0_0_10px_var(--brand)]'
                         : row === rowLetter
-                          ? 'bg-surface-muted'
-                          : 'bg-surface-muted/50',
+                          ? 'bg-surface-muted hover:bg-line-strong'
+                          : 'bg-surface-muted/50 hover:bg-surface-muted',
                     )}
                   />
                 )

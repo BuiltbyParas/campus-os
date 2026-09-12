@@ -54,7 +54,10 @@
   --info-ink: oklch(0.45 0.13 235);
 
   /* The canonical dark canvas, referenced by the always-dark landing surface. */
-  --canvas-dark: #080b12;
+  --canvas-dark: #0f1419;
+
+  /* The secondary accent, for gradients only. */
+  --accent-violet: #8b5cf6;
 
   /* Ambient glow — only meaningful on dark surfaces */
   --glow-brand: color-mix(in oklab, var(--brand) 22%, transparent);
@@ -91,54 +94,63 @@
 .dark {
   color-scheme: dark;
 
+  /* Surfaces — a deep blue-black, not flat black, so the accent-tinted
+     borders and glows have something to sit against. */
   --canvas: var(--canvas-dark);
-  --surface: #111621;
-  --surface-muted: #0d121b;
-  --surface-raised: #151b28;
+  --surface: #1a1f2e;
+  --surface-muted: #151a27;
+  --surface-raised: #252d3d;
   --overlay: oklch(0.08 0.012 265 / 0.72);
 
-  --ink: #f5f7fa;
-  --ink-muted: #8b95a7;
-  --ink-subtle: #6b7588;
-  --ink-inverse: #080b12;
+  --ink: #ffffff;
+  --ink-muted: #a0aec0;
+  --ink-subtle: #64748b;
+  --ink-inverse: #0f1419;
 
-  /* Borders are hairlines: present, never loud. */
-  --line: oklch(1 0 0 / 0.07);
-  --line-strong: oklch(1 0 0 / 0.13);
+  /* Borders carry a trace of the accent rather than being neutral white
+     alpha. It is what makes a dark surface read as *lit* rather than as a
+     grey box, and it is why hover only has to raise the opacity. */
+  --line: rgb(99 102 241 / 0.15);
+  --line-strong: rgb(99 102 241 / 0.4);
 
-  --brand: #6c63ff;
-  --brand-hover: #8079ff;
-  --brand-soft: oklch(0.58 0.19 274 / 0.14);
-  --brand-border: oklch(0.58 0.19 274 / 0.32);
-  --brand-ink: #aca5ff;
+  --brand: #6366f1;
+  --brand-hover: #818cf8;
+  --brand-soft: rgb(99 102 241 / 0.14);
+  --brand-border: rgb(99 102 241 / 0.45);
+  --brand-ink: #a5b4fc;
   --on-brand: #ffffff;
 
-  --ok: #35d07f;
-  --ok-soft: oklch(0.75 0.17 158 / 0.14);
-  --ok-ink: #6fdfa4;
+  /* The secondary accent. Used only where a gradient needs somewhere to
+     travel to — never on its own as a third brand colour. */
+  --accent-violet: #8b5cf6;
 
-  --warn: #ffb547;
-  --warn-soft: oklch(0.8 0.14 70 / 0.14);
-  --warn-ink: #ffcd85;
+  --ok: #10b981;
+  --ok-soft: rgb(16 185 129 / 0.14);
+  --ok-ink: #34d399;
 
-  --danger: #ff5c5c;
-  --danger-soft: oklch(0.68 0.2 22 / 0.14);
-  --danger-ink: #ff9090;
+  --warn: #f59e0b;
+  --warn-soft: rgb(245 158 11 / 0.14);
+  --warn-ink: #fbbf24;
 
-  --info: #5aa9ff;
-  --info-soft: oklch(0.72 0.14 245 / 0.14);
-  --info-ink: #96c8ff;
+  --danger: #ef4444;
+  --danger-soft: rgb(239 68 68 / 0.14);
+  --danger-ink: #f87171;
 
-  --shadow-xs: 0 1px 2px oklch(0 0 0 / 0.4);
-  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.45), 0 2px 6px oklch(0 0 0 / 0.3);
-  --shadow-md: 0 2px 4px oklch(0 0 0 / 0.45), 0 10px 26px oklch(0 0 0 / 0.4);
-  --shadow-lg: 0 4px 10px oklch(0 0 0 / 0.5), 0 24px 60px oklch(0 0 0 / 0.55);
+  --info: #60a5fa;
+  --info-soft: rgb(96 165 250 / 0.14);
+  --info-ink: #93c5fd;
 
-  /* On a near-black canvas the veil needs a touch more body to stay legible,
-     and the drop shadow has to be deeper to separate from the background. */
+  /* Three elevations, plus the accent glow that separates "raised" from
+     "raised and interactive". */
+  --shadow-xs: 0 2px 8px rgb(0 0 0 / 0.12), 0 1px 2px rgb(0 0 0 / 0.08);
+  --shadow-sm: 0 2px 8px rgb(0 0 0 / 0.12), 0 1px 2px rgb(0 0 0 / 0.08);
+  --shadow-md: 0 8px 24px rgb(0 0 0 / 0.2), 0 4px 8px rgb(0 0 0 / 0.12);
+  --shadow-lg: 0 16px 40px rgb(0 0 0 / 0.3), 0 8px 16px rgb(0 0 0 / 0.16);
+  --glow-accent: 0 0 12px rgb(99 102 241 / 0.2);
+
   --glass-veil: color-mix(in oklab, var(--canvas) 76%, transparent);
   --glass-veil-light: color-mix(in oklab, var(--canvas) 62%, transparent);
-  --glass-edge: oklch(1 0 0 / 0.09);
+  --glass-edge: rgb(99 102 241 / 0.18);
   --glass-sheen: oklch(1 0 0 / 0.07);
   --glass-shadow: 0 20px 50px -22px oklch(0 0 0 / 0.85);
 }
@@ -164,6 +176,7 @@
   --color-brand-border: var(--brand-border);
   --color-brand-ink: var(--brand-ink);
   --color-on-brand: var(--on-brand);
+  --color-accent-violet: var(--accent-violet);
 
   --color-ok: var(--ok);
   --color-ok-soft: var(--ok-soft);
@@ -192,6 +205,8 @@
     sans-serif;
 
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Slight overshoot — the difference between "it moved" and "it responded". */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @layer base {
@@ -247,6 +262,55 @@
   }
   .scrollbar-none::-webkit-scrollbar {
     display: none;
+  }
+
+  /* A rail that belongs to the surface it scrolls rather than the OS. */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(99 102 241 / 0.4) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgb(99 102 241 / 0.4);
+    border-radius: 999px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgb(99 102 241 / 0.6);
+  }
+
+  /* ---- Skeletons -------------------------------------------------------
+     A travelling highlight rather than a pulsing block. A pulse says "this
+     element is blinking"; a sweep says "content is on its way", which is the
+     thing a loading state is actually meant to communicate. */
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+    background-color: rgb(99 102 241 / 0.06);
+  }
+  .shimmer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(255 255 255 / 0.06),
+      transparent
+    );
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shimmer::after {
+      animation: none;
+    }
   }
 
   /* Safe-area aware padding for mobile bottom navigation. */
@@ -345,6 +409,58 @@
     }
   }
 
+  /* ---- Elevation on hover ----------------------------------------------
+
+     The interactive vocabulary for surfaces that are *destinations* — a card
+     you click into. `.press` is for controls that respond under the finger;
+     this is for panels that rise toward it.
+
+     Three things move together, which is what makes it read as elevation
+     rather than as a colour change: the surface lifts, its shadow deepens, and
+     its border brightens. Any one alone reads as a glitch.
+
+     The reduced-motion block at the bottom of this file already strips the
+     transition, and the transform is dropped explicitly there too. */
+  .lift {
+    transition:
+      transform 200ms var(--ease-spring),
+      box-shadow 200ms var(--ease-out-soft),
+      border-color 150ms ease-in-out,
+      background-color 150ms ease-in-out;
+  }
+  .lift:hover {
+    /* The slight overshoot in `--ease-spring` is what makes the lift feel
+       physical rather than linear; the scale is small enough that adjacent
+       cards never appear to collide. */
+    transform: translateY(-4px) scale(1.02);
+    border-color: var(--line-strong);
+    box-shadow: var(--shadow-lg), var(--glow-accent);
+  }
+  .lift:active {
+    transform: translateY(-2px) scale(0.99);
+  }
+
+  /* A stronger lift for the one card a screen is *about*. */
+  .lift-lg:hover {
+    transform: translateY(-6px) scale(1.02);
+  }
+
+  /* A brand-tinted variant for the surface a section is *about*. */
+  .lift-accent:hover {
+    border-color: var(--brand-border);
+    box-shadow:
+      var(--shadow-lg),
+      0 0 16px rgb(99 102 241 / 0.28);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lift:hover,
+    .lift:active,
+    .lift-lg:hover {
+      transform: none;
+    }
+  }
+
   /* ---- Landing surface treatments ------------------------------------- */
 
   /* Headline emphasis: a restrained top-down fade, not a rainbow. */
@@ -436,6 +552,26 @@
   }
 }
 
+/* A short lean, not a shake: two small rotations and done. */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes bell-nudge {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-9deg);
+  }
+  60% {
+    transform: rotate(6deg);
+  }
+}
+
 @keyframes pulse-ring {
   0% {
     opacity: 0.7;
@@ -469,6 +605,61 @@
    Painting the root element too keeps overscroll from flashing the light canvas.
    -------------------------------------------------------------------------- */
 html:has(.landing-surface) {
-  background-color: var(--canvas-dark);
+  background-color: #080b12;
   color-scheme: dark;
+}
+
+/* --------------------------------------------------------------------------
+   The marketing surface is frozen.
+
+   The app was re-palletted to the enterprise scheme (#0f1419 canvas, #6366f1
+   accent, accent-tinted borders). The landing page is signed off as it stands,
+   so it keeps the original palette: these overrides restore the pre-change
+   values for everything inside `.landing-surface` and nothing else.
+
+   This is the whole reason the product themes through tokens — one scoped
+   block re-skins an entire surface without touching a component.
+   -------------------------------------------------------------------------- */
+.landing-surface {
+  --canvas: #080b12;
+  --surface: #111621;
+  --surface-muted: #0d121b;
+  --surface-raised: #151b28;
+
+  --ink: #f5f7fa;
+  --ink-muted: #8b95a7;
+  --ink-subtle: #6b7588;
+  --ink-inverse: #080b12;
+
+  --line: oklch(1 0 0 / 0.07);
+  --line-strong: oklch(1 0 0 / 0.13);
+
+  --brand: #6c63ff;
+  --brand-hover: #8079ff;
+  --brand-soft: oklch(0.58 0.19 274 / 0.14);
+  --brand-border: oklch(0.58 0.19 274 / 0.32);
+  --brand-ink: #aca5ff;
+
+  --ok: #35d07f;
+  --ok-soft: oklch(0.75 0.17 158 / 0.14);
+  --ok-ink: #6fdfa4;
+
+  --warn: #ffb547;
+  --warn-soft: oklch(0.8 0.14 70 / 0.14);
+  --warn-ink: #ffcd85;
+
+  --danger: #ff5c5c;
+  --danger-soft: oklch(0.68 0.2 22 / 0.14);
+  --danger-ink: #ff9090;
+
+  --info: #5aa9ff;
+  --info-soft: oklch(0.72 0.14 245 / 0.14);
+  --info-ink: #96c8ff;
+
+  --glass-edge: oklch(1 0 0 / 0.09);
+
+  --shadow-xs: 0 1px 2px oklch(0 0 0 / 0.4);
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.45), 0 2px 6px oklch(0 0 0 / 0.3);
+  --shadow-md: 0 2px 4px oklch(0 0 0 / 0.45), 0 10px 26px oklch(0 0 0 / 0.4);
+  --shadow-lg: 0 4px 10px oklch(0 0 0 / 0.5), 0 24px 60px oklch(0 0 0 / 0.55);
 }

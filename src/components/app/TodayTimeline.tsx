@@ -46,8 +46,9 @@ export function TodayTimeline({ items }: { items: AgendaItem[] }) {
           past && !gap && 'opacity-45',
           now && 'bg-ok-soft',
           next && 'bg-brand-soft',
-          interactive && !now && !next && 'hover:bg-surface-raised',
-          interactive && (now || next) && 'hover:brightness-110',
+          interactive && !now && !next && 'hover:bg-surface-raised hover:translate-x-0.5',
+          interactive && (now || next) && 'hover:brightness-110 hover:translate-x-0.5',
+          interactive && 'transition-[background-color,transform,filter] duration-200',
         )
 
         const body = (

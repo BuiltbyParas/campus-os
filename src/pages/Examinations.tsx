@@ -173,10 +173,10 @@ function NextExam({
         toneRing[tone],
       )}
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-24 -top-32 size-[420px] rounded-full bg-brand/14 blur-[100px]"
-      />
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-brand/[0.07] via-transparent to-transparent" />
+        <div className="absolute -right-24 -top-32 size-[420px] rounded-full bg-brand/14 blur-[100px]" />
+      </div>
 
       <div className="relative grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.25fr_1fr] lg:gap-10">
         {/* ------------------------------------------------------ countdown */}
@@ -388,10 +388,10 @@ function ExamCard({ exam, at }: { exam: Exam; at: Date }) {
   const finished = daysUntil(exam.date, at) < 0
 
   return (
-    <article className="rounded-card border border-line bg-surface p-4 sm:p-5">
+    <article className="lift group rounded-card border border-line bg-surface p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="truncate text-[15px] font-semibold text-ink">
+          <h3 className="truncate text-[15px] font-semibold text-ink transition-colors duration-200 group-hover:text-brand-ink">
             {course?.name ?? 'Examination'}
           </h3>
           <p className="mt-0.5 text-[12.5px] text-ink-subtle">
@@ -436,8 +436,8 @@ function ExamCard({ exam, at }: { exam: Exam; at: Date }) {
       </div>
 
       {exam.note ? (
-        <p className="mt-2.5 flex items-start gap-1.5 text-[12.5px] leading-snug text-ink-muted">
-          <CalendarClock className="mt-px size-3.5 shrink-0 text-ink-subtle" aria-hidden />
+        <p className="mt-3 flex items-start gap-2 rounded-tile border border-warn/25 bg-warn-soft/20 px-3 py-2 text-[12.5px] leading-snug text-ink-muted">
+          <CalendarClock className="mt-px size-3.5 shrink-0 text-warn-ink" aria-hidden />
           {exam.note}
         </p>
       ) : null}

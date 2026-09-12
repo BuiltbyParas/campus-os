@@ -81,8 +81,16 @@ export function AttentionStack({
   return (
     <div className={cn('min-w-0', className)}>
       {/* ------------------------------------------------------------- lead */}
-      <article className="relative overflow-hidden rounded-card border border-line bg-surface">
-        <span aria-hidden className={cn('absolute inset-x-0 top-0 h-[3px]', leadTone.rail)} />
+      <article className="lift group relative overflow-hidden rounded-card border border-line bg-surface">
+        {/* The rail thickens on hover rather than changing colour — the colour
+            already means something, so it must not move. */}
+        <span
+          aria-hidden
+          className={cn(
+            'absolute inset-y-0 left-0 w-[3px] transition-[width] duration-200 group-hover:w-[4px]',
+            leadTone.rail,
+          )}
+        />
         <div
           aria-hidden
           className={cn(
@@ -91,10 +99,15 @@ export function AttentionStack({
           )}
         />
 
-        <div className="relative p-5">
+        <div className="relative p-5 pl-6">
           <div className="flex items-center gap-2">
-            <span className={cn('grid size-6 place-items-center rounded-full', leadTone.soft)}>
-              <leadTone.Icon className={cn('size-3.5', leadTone.text)} aria-hidden />
+            <span
+              className={cn(
+                'grid size-10 place-items-center rounded-full transition-transform duration-200 group-hover:scale-110',
+                leadTone.soft,
+              )}
+            >
+              <leadTone.Icon className={cn('size-[18px]', leadTone.text)} aria-hidden />
             </span>
             <p className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-ink-subtle">
               {sourceLabel[lead.source]}
@@ -130,10 +143,13 @@ export function AttentionStack({
           {lead.action ? (
             <Link
               to={lead.action.to}
-              className="press mt-4 inline-flex h-9 items-center gap-1.5 rounded-control bg-brand px-3.5 text-[13px] font-medium text-on-brand hover:bg-brand-hover"
+              className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand-ink decoration-brand-ink/50 underline-offset-4 transition-[color,text-decoration-color] duration-150 hover:text-brand hover:underline"
             >
               {lead.action.label}
-              <ArrowRight className="size-3.5" aria-hidden />
+              <ArrowRight
+                className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
+                aria-hidden
+              />
             </Link>
           ) : null}
         </div>
@@ -148,9 +164,15 @@ export function AttentionStack({
               <li key={signal.id}>
                 <Link
                   to={signal.action?.to ?? '#'}
-                  className="group flex items-center gap-3 px-4 py-3 transition-colors hover:bg-surface-raised"
+                  className="group flex items-center gap-3 px-4 py-3.5 transition-colors duration-150 hover:bg-brand/[0.05]"
                 >
-                  <span aria-hidden className={cn('h-8 w-[3px] shrink-0 rounded-full', style.rail)} />
+                  <span
+                    aria-hidden
+                    className={cn(
+                      'h-9 w-[3px] shrink-0 rounded-full transition-[width] duration-200 group-hover:w-[4px]',
+                      style.rail,
+                    )}
+                  />
 
                   <span className="min-w-0 flex-1">
                     <span className="block text-[10px] font-semibold uppercase tracking-[0.1em] text-ink-subtle">

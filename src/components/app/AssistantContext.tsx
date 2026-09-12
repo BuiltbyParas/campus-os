@@ -84,9 +84,12 @@ export function AssistantContext({
               <li key={row.id}>
                 <Link
                   to={row.to}
-                  className="group flex items-center gap-2.5 rounded-tile px-2 py-2 transition-colors hover:bg-surface-raised"
+                  className="group flex items-center gap-2.5 rounded-tile px-2.5 py-2.5 transition-colors duration-200 hover:bg-surface-raised"
                 >
-                  <row.icon className="size-3.5 shrink-0 text-ink-subtle" aria-hidden />
+                  <row.icon
+                    className="size-3.5 shrink-0 text-ink-subtle transition-[color,transform] duration-200 group-hover:scale-110 group-hover:text-brand-ink"
+                    aria-hidden
+                  />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[12px] text-ink-subtle">{row.label}</span>
                     {row.detail ? (
@@ -97,7 +100,7 @@ export function AssistantContext({
                   </span>
                   <span
                     className={cn(
-                      'shrink-0 text-[12.5px] font-semibold tabular-nums',
+                      'shrink-0 text-[14px] font-semibold tabular-nums transition-colors duration-200 group-hover:text-brand-ink',
                       toneValue[row.tone ?? 'info'],
                     )}
                   >

@@ -1,4 +1,4 @@
-import { Sparkles, TrendingDown } from 'lucide-react'
+import { CalendarCheck2, GraduationCap, Sparkles, TrendingDown } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { AttendanceProjection } from '@/components/app/AttendanceProjection'
@@ -57,6 +57,11 @@ export default function Attendance() {
                 size={148}
                 label="Overall attendance"
                 caption={`${summary.requiredPercentage}% required`}
+                trend={
+                  summary.trend && summary.trend.length > 1
+                    ? summary.trend[summary.trend.length - 1] - summary.trend[0]
+                    : undefined
+                }
               />
 
               <div className="min-w-0 flex-1 text-center sm:text-left">
@@ -117,6 +122,7 @@ export default function Attendance() {
             {/* The three figures a student checks before deciding anything. */}
             <div className="mt-6 grid gap-3 border-t border-line pt-5 sm:grid-cols-3">
               <StatTile
+                icon={CalendarCheck2}
                 label="Classes attended"
                 value={
                   <>
@@ -127,6 +133,7 @@ export default function Attendance() {
                 detail={`Across ${summary.courses.length} courses`}
               />
               <StatTile
+                icon={GraduationCap}
                 label="Courses on track"
                 value={
                   <>
@@ -138,6 +145,7 @@ export default function Attendance() {
                 detail={below.length > 0 ? `${below.length} below the line` : 'None below the line'}
               />
               <StatTile
+                icon={TrendingDown}
                 label="Lowest course"
                 value={weakest ? `${Math.round(weakest.percentage)}%` : '—'}
                 tone={weakest ? attendanceStatusTone[weakest.status] : 'info'}
@@ -149,7 +157,7 @@ export default function Attendance() {
 
           {/* ------------------------------------------------------ shortfall */}
           {below.length > 0 ? (
-            <section className="rounded-card border border-danger/25 bg-danger-soft/40 p-5">
+            <section className="relative overflow-hidden rounded-card border border-danger/25 bg-danger-soft/25 p-5 pl-6 before:absolute before:inset-y-0 before:left-0 before:w-[3px] before:bg-danger before:content-['']">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex items-start gap-3">
                   <TrendingDown

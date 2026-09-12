@@ -11,6 +11,7 @@ import { BottomNav } from './BottomNav'
 import { DemoModeBanner } from './DemoModeBanner'
 import { MobileHeader } from './MobileHeader'
 import { Sidebar } from './Sidebar'
+import { TopBar } from './TopBar'
 
 function useScrollToTopOnNavigate() {
   const { pathname } = useLocation()
@@ -45,8 +46,9 @@ export function AppShell() {
       <MobileHeader onOpenCommandPalette={palette.toggle} />
 
       <div className="relative lg:pl-[248px]">
+        <TopBar onOpenCommandPalette={palette.toggle} />
         <DemoModeBanner />
-        <main id="main" className="pb-32 pt-5 sm:pt-6 lg:pb-24 lg:pt-9">
+        <main id="main" className="pb-32 pt-5 sm:pt-6 lg:pb-24 lg:pt-8">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={location.pathname}

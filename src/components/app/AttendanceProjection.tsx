@@ -60,8 +60,13 @@ export function AttendanceProjection({
         <DemoTag title="Projected from demo attendance against a demo threshold" />
       </div>
 
-      {/* course */}
-      <div role="radiogroup" aria-label="Course" className="mt-4 flex flex-wrap gap-2">
+      {/* course — underline tabs rather than pills, so the active course reads
+          as a selected view rather than one more chip on the page */}
+      <div
+        role="radiogroup"
+        aria-label="Course"
+        className="mt-4 flex gap-1 overflow-x-auto border-b border-line scrollbar-none"
+      >
         {summary.courses.map((entry) => {
           const course = courseById.get(entry.courseId)
           const active = entry.courseId === courseId
@@ -73,13 +78,20 @@ export function AttendanceProjection({
               aria-checked={active}
               onClick={() => setCourseId(entry.courseId)}
               className={cn(
-                'press rounded-full border px-3 py-1.5 text-[12.5px] font-medium',
+                'relative shrink-0 px-3 pb-2.5 pt-1 text-[12.5px] font-medium transition-colors duration-200',
                 active
-                  ? 'border-brand-border/50 bg-brand-soft text-ink'
-                  : 'border-line bg-surface-raised text-ink-muted hover:border-line-strong hover:text-ink',
+                  ? 'text-ink'
+                  : 'text-ink-subtle hover:bg-surface-raised/60 hover:text-ink',
               )}
             >
               {course?.short ?? 'Course'}
+              <span
+                aria-hidden
+                className={cn(
+                  'absolute inset-x-0 -bottom-px h-[2px] rounded-full transition-colors duration-200',
+                  active ? 'bg-brand' : 'bg-transparent',
+                )}
+              />
             </button>
           )
         })}
@@ -125,7 +137,7 @@ export function AttendanceProjection({
             <li
               key={step.missed}
               className={cn(
-                'bg-surface px-3 py-2.5 transition-colors',
+                'bg-surface px-3 py-2.5 transition-colors duration-200 hover:bg-surface-raised',
                 selected && 'bg-surface-raised',
               )}
             >

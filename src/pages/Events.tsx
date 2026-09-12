@@ -314,7 +314,7 @@ function Rail({
               key={event.id}
               className="w-[268px] shrink-0 snap-start sm:w-[292px]"
             >
-              <article className="press group flex h-full flex-col rounded-card border border-line bg-surface p-4 transition-[border-color,transform] hover:border-line-strong">
+              <article className="lift lift-accent group flex h-full flex-col rounded-card border border-line bg-surface p-5">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-ink-subtle">
                     {eventCategoryLabel[event.category]}

@@ -2,7 +2,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { useState } from 'react'
 
 import { DayAxis } from '@/components/app/DayAxis'
-import { NowNext } from '@/components/app/NowNext'
+import { NextClassHero } from '@/components/app/NextClassHero'
 import { TodayTimeline } from '@/components/app/TodayTimeline'
 import { PageContainer, PageHeader } from '@/components/layout/PageContainer'
 import { Skeleton, SkeletonRows } from '@/components/ui/Skeleton'
@@ -69,9 +69,6 @@ export default function Timetable() {
 
   const currentItem = todayAgenda.find((item) => item.status === 'now')
   const nextItem = todayAgenda.find((item) => item.status === 'next')
-  const laterItem = todayAgenda.find(
-    (item) => item.kind !== 'gap' && item !== nextItem && item.status === 'upcoming',
-  )
 
   const activeAgenda = view === 'tomorrow' ? tomorrowAgenda : todayAgenda
   const activeDay = view === 'tomorrow' ? tomorrow : today
@@ -108,9 +105,7 @@ export default function Timetable() {
       ) : (
         <>
           {/* --------------------------------------------- now / next / later */}
-          {today ? (
-            <NowNext now={currentItem} next={nextItem} later={laterItem} />
-          ) : null}
+          {today ? <NextClassHero now={currentItem} next={nextItem} /> : null}
 
           <Tabs options={options} value={view} onChange={setView} label="Schedule view" />
 

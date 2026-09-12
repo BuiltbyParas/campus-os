@@ -101,7 +101,7 @@ export function DayAxis({
             >
               <div
                 className={cn(
-                  'h-[18px] rounded-full transition-[transform,opacity] duration-200 group-hover:scale-y-110',
+                  'h-[18px] rounded-full transition-[transform,opacity,filter] duration-200 group-hover:scale-y-125 group-hover:brightness-125',
                   markerTone[item.kind],
                   past && 'opacity-35',
                   active && 'ring-2 ring-ok ring-offset-2 ring-offset-surface',

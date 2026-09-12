@@ -23,23 +23,34 @@ export interface NavItem {
 }
 
 /**
- * The desktop sidebar.
+ * Navigation, grouped.
  *
- * A destination only appears here once the screen behind it is real, and
- * related records share a destination rather than each claiming a row:
- * `Academics` carries marks, re-evaluation and EDU-Revolution together,
- * because a student reads them as one question rather than three.
+ * Nine flat rows is a list to be read; two labelled groups is a structure to be
+ * scanned. The split is by *cadence* rather than by department — the top group
+ * is what a student opens between classes, the second is what they open a few
+ * times a semester.
  */
-export const primaryNav: NavItem[] = [
-  { to: '/app', label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: '/app/assistant', label: 'AI Assistant', shortLabel: 'Assistant', icon: Sparkles },
-  { to: '/app/attendance', label: 'Attendance', icon: ScanLine },
-  { to: '/app/timetable', label: 'Timetable', icon: CalendarDays },
-  { to: '/app/academics', label: 'Academics', icon: GraduationCap },
-  { to: '/app/exams', label: 'Examinations', shortLabel: 'Exams', icon: FileText },
-  { to: '/app/fees', label: 'Fees', icon: Wallet },
-  { to: '/app/complaints', label: 'Complaints', icon: MessageSquareWarning },
-  { to: '/app/events', label: 'Events', icon: CalendarRange },
+export const navSections: { id: string; label?: string; items: NavItem[] }[] = [
+  {
+    id: 'main',
+    items: [
+      { to: '/app', label: 'Dashboard', icon: LayoutDashboard, end: true },
+      { to: '/app/assistant', label: 'AI Assistant', shortLabel: 'Assistant', icon: Sparkles },
+      { to: '/app/attendance', label: 'Attendance', icon: ScanLine },
+      { to: '/app/timetable', label: 'Timetable', icon: CalendarDays },
+      { to: '/app/academics', label: 'Academics', icon: GraduationCap },
+      { to: '/app/exams', label: 'Examinations', shortLabel: 'Exams', icon: FileText },
+    ],
+  },
+  {
+    id: 'admin',
+    label: 'Administration',
+    items: [
+      { to: '/app/fees', label: 'Fees', icon: Wallet },
+      { to: '/app/complaints', label: 'Complaints', icon: MessageSquareWarning },
+      { to: '/app/events', label: 'Events', icon: CalendarRange },
+    ],
+  },
 ]
 
 /** Account destinations, separated from the day-to-day work above. */

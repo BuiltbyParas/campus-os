@@ -2,12 +2,14 @@ import { Award, CheckCircle2, Circle, CircleDot, Clock3, FileText, Sparkles } fr
 import { Link } from 'react-router-dom'
 
 import { PageContainer, PageHeader } from '@/components/layout/PageContainer'
+import { CountUp } from '@/components/ui/CountUp'
 import { DemoNote, DemoTag } from '@/components/ui/DemoTag'
 import { MilestoneTrack, type Milestone } from '@/components/ui/MilestoneTrack'
 import { Skeleton, SkeletonRows } from '@/components/ui/Skeleton'
 import { EmptyState, ErrorState } from '@/components/ui/States'
 import { courseById } from '@/data'
 import { DEMO_REVALUATION_WINDOW_DAYS, reachableRange, revaluationWindow } from '@/lib/results'
+import { Meter } from '@/components/ui/Meter'
 import { cn, formatDateLabel } from '@/lib/utils'
 import { useEduProgress, useResults } from '@/services/queries'
 import type { CourseResult, EduActivity, EduActivityStatus } from '@/types'
@@ -65,9 +67,13 @@ export default function Academics() {
         />
       ) : (
         <>
-          {/* overall */}
-          <section className="rounded-card border border-line bg-surface p-5 sm:p-6">
-            <div className="flex flex-wrap items-start justify-between gap-4">
+          {/* overall — the figure the page is about, given hero treatment */}
+          <section className="relative overflow-hidden rounded-card border border-line bg-surface p-5 sm:p-6">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -right-20 -top-24 size-64 rounded-full bg-brand/12 blur-[80px]"
+            />
+            <div className="relative flex flex-wrap items-end justify-between gap-4">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <h2 className="text-[17px] font-semibold tracking-tight text-ink">
@@ -79,9 +85,28 @@ export default function Academics() {
                   Across everything assessed so far — not a final grade.
                 </p>
               </div>
-              <p className="text-[34px] font-semibold leading-none tabular-nums text-ink">
-                {Math.round(summary.overallPercentage)}%
+              <p className="text-[48px] font-semibold leading-none tracking-[-0.03em] tabular-nums text-ink sm:text-[56px]">
+                <CountUp value={Math.round(summary.overallPercentage)} />
+                <span className="text-[24px] text-ink-muted">%</span>
               </p>
+            </div>
+
+            {/* the bar carries the grade bands, so the number has somewhere to
+                sit rather than floating on its own */}
+            <div className="relative mt-5 h-2.5 w-full overflow-hidden rounded-full bg-surface-muted">
+              <div
+                className="h-full rounded-full transition-[width] duration-700 ease-out"
+                style={{
+                  width: `${Math.min(100, summary.overallPercentage)}%`,
+                  background:
+                    'linear-gradient(90deg, color-mix(in oklab, var(--brand) 55%, transparent), var(--brand))',
+                }}
+              />
+            </div>
+            <div className="relative mt-2 flex justify-between text-[10.5px] tabular-nums text-ink-subtle">
+              <span>0</span>
+              <span>50</span>
+              <span>100</span>
             </div>
 
             {summary.latest ? (
@@ -186,44 +211,78 @@ export default function Academics() {
 
 /* ------------------------------------------------------------- course card */
 
+/**
+ * Grade bands.
+ *
+ * Thresholds are a **demo convention** for this prototype, not an institutional
+ * grading scale — they exist so a weak component is visibly weak, and the page
+ * says as much in its demo note.
+ */
+function gradeTone(percentage: number) {
+  if (percentage >= 70) return 'text-ok-ink'
+  if (percentage >= 50) return 'text-warn-ink'
+  return 'text-danger-ink'
+}
+
+function gradeMeter(percentage: number): 'ok' | 'warn' | 'danger' {
+  if (percentage >= 70) return 'ok'
+  if (percentage >= 50) return 'warn'
+  return 'danger'
+}
+
 function CourseCard({ result }: { result: CourseResult }) {
   const course = courseById.get(result.courseId)
   const range = reachableRange(result)
   const window = revaluationWindow(result)
 
   return (
-    <article className="rounded-card border border-line bg-surface p-5">
+    <article className="lift group rounded-card border border-line bg-surface p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="truncate text-[15px] font-semibold text-ink">
+          <h3 className="truncate text-[15px] font-semibold text-ink transition-colors duration-200 group-hover:text-brand-ink">
             {course?.name ?? 'Course'}
           </h3>
           <p className="mt-0.5 text-[12.5px] text-ink-subtle">
             {course?.code} · {Math.round(result.assessed)}% of the course assessed
           </p>
         </div>
-        <p className="text-[22px] font-semibold leading-none tabular-nums text-ink">
+        <p
+          className={cn(
+            'text-[22px] font-semibold leading-none tabular-nums transition-colors duration-200',
+            gradeTone(result.percentage),
+          )}
+        >
           {Math.round(result.percentage)}%
         </p>
       </div>
 
-      {/* assessments */}
-      <ul className="mt-4 space-y-2">
-        {result.assessments.map((assessment) => (
-          <li
-            key={assessment.id}
-            className="flex items-center justify-between gap-4 rounded-tile bg-surface-muted/60 px-3 py-2"
-          >
-            <span className="min-w-0 truncate text-[13px] text-ink">{assessment.name}</span>
-            <span className="shrink-0 text-[13px] tabular-nums text-ink-muted">
-              {assessment.score}
-              <span className="text-ink-subtle">/{assessment.maxScore}</span>
-              <span className="ml-2 text-[11.5px] text-ink-subtle">
-                {assessment.weight}% weight
-              </span>
-            </span>
-          </li>
-        ))}
+      {/* assessments — each as a mini bar, colour-coded by band, so a weak
+          component is visible without reading three numbers */}
+      <ul className="mt-4 space-y-2.5">
+        {result.assessments.map((assessment) => {
+          const share = (assessment.score / assessment.maxScore) * 100
+          return (
+            <li key={assessment.id} className="rounded-tile bg-surface-muted/60 px-3 py-2.5">
+              <div className="flex items-center justify-between gap-4">
+                <span className="min-w-0 truncate text-[13px] text-ink">{assessment.name}</span>
+                <span className="shrink-0 text-[13px] tabular-nums text-ink-muted">
+                  <span className={cn('font-medium', gradeTone(share))}>{assessment.score}</span>
+                  <span className="text-ink-subtle">/{assessment.maxScore}</span>
+                  <span className="ml-2 text-[11.5px] text-ink-subtle">
+                    {assessment.weight}% weight
+                  </span>
+                </span>
+              </div>
+              <Meter
+                value={share}
+                tone={gradeMeter(share)}
+                size="sm"
+                label={`${assessment.name}: ${assessment.score} of ${assessment.maxScore}`}
+                className="mt-2"
+              />
+            </li>
+          )
+        })}
       </ul>
 
       {/* what is still reachable — the honest way to read a mid-semester mark */}

@@ -1,7 +1,7 @@
 import { Search } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 
-import { accountNav, primaryNav, type NavItem } from '@/app/navigation'
+import { accountNav, navSections, type NavItem } from '@/app/navigation'
 import { useStore } from '@/app/store'
 import { cn } from '@/lib/utils'
 
@@ -14,9 +14,9 @@ function SidebarLink({ item }: { item: NavItem }) {
       end={item.end}
       className={({ isActive }) =>
         cn(
-          'group relative flex items-center gap-3 rounded-control px-3 py-2.5 text-[14px] font-medium',
-          'transition-[color,background-color] duration-200',
-          isActive ? 'text-ink' : 'text-ink-muted hover:bg-surface hover:text-ink',
+          'group relative flex h-11 items-center gap-3 rounded-control px-3 text-[14px] font-medium',
+          'transition-[color,background-color,transform] duration-200 active:scale-[0.98]',
+          isActive ? 'text-ink' : 'text-ink-muted hover:bg-brand/[0.08] hover:text-ink',
         )
       }
     >
@@ -25,10 +25,16 @@ function SidebarLink({ item }: { item: NavItem }) {
           {/* The active surface is a solid tint, not glass: glass belongs to the
               bar itself, and nesting it here would muddy both layers. */}
           {isActive ? (
-            <span
-              aria-hidden
-              className="absolute inset-0 rounded-control border border-brand-border/40 bg-brand-soft"
-            />
+            <>
+              <span aria-hidden className="absolute inset-0 rounded-control bg-brand-soft" />
+              {/* A bar on the trailing edge, pointing at the content it opens —
+                  the pill alone reads as a highlight, the bar reads as *you are
+                  here*. */}
+              <span
+                aria-hidden
+                className="absolute inset-y-1.5 right-0 w-[3px] rounded-full bg-brand"
+              />
+            </>
           ) : null}
           <item.icon
             className={cn(
@@ -72,13 +78,29 @@ export function Sidebar({ onOpenCommandPalette }: { onOpenCommandPalette: () => 
           </kbd>
         </button>
 
-        <nav aria-label="Primary" className="flex flex-col gap-1">
-          {primaryNav.map((item) => (
-            <SidebarLink key={item.to} item={item} />
+        {/* The rail scrolls on short viewports; the account block below stays
+            pinned, so identity never scrolls out of reach. */}
+        <nav aria-label="Primary" className="scrollbar-thin -mr-1 flex-1 overflow-y-auto pr-1">
+          {navSections.map((section) => (
+            <div key={section.id} className={cn(section.label && 'mt-6')}>
+              {section.label ? (
+                <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.5px] text-ink-subtle">
+                  {section.label}
+                </p>
+              ) : null}
+              <div className="flex flex-col gap-1">
+                {section.items.map((item) => (
+                  <SidebarLink key={item.to} item={item} />
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
 
-        <nav aria-label="Account" className="mt-auto flex flex-col gap-1 pt-6">
+        <nav
+          aria-label="Account"
+          className="mt-4 flex shrink-0 flex-col gap-1 border-t border-line pt-4"
+        >
           {accountNav.map((item) => (
             <SidebarLink key={item.to} item={item} />
           ))}
