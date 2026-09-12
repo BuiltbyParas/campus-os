@@ -47,6 +47,7 @@ export default function Timetable() {
   )
 
   return (
+    <PageContainer className="space-y-6">
       <div className="border-b border-[rgba(99,102,241,0.1)] pb-4">
         <h1 className="text-[28px] font-bold text-white tracking-tight">Timetable</h1>
         <p className="text-[14px] text-[#a0aec0]">
