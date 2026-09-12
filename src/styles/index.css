@@ -954,6 +954,40 @@
     border-radius: 6px;
   }
 
+  /* The brand mark, the live clock and the collapsed page title all want the
+     middle of the mobile header. Rather than stacking them, the first two step
+     aside when a title arrives — which is the behaviour every native
+     navigation bar has, and the only reason the title is legible at that size.
+     Nothing is lost: the clock is on the dashboard and in the quick-stats
+     strip, and the mark is one tap away in the drawer. */
+  .brand-lockup {
+    transition:
+      opacity 250ms var(--ease-elegant),
+      transform 250ms var(--ease-elegant);
+  }
+
+  [data-compact-title] .brand-lockup {
+    opacity: 0;
+    transform: translateX(-10px);
+    pointer-events: none;
+  }
+
+  /* A translucent bar is right over a hero and wrong under a title: once the
+     page is scrolled, whatever passes behind the glass competes with the one
+     piece of text that says which screen you are on. So the bar gains
+     material at exactly the moment it gains a title. */
+  .mobile-bar {
+    transition: background-color 250ms var(--ease-elegant);
+  }
+
+  [data-compact-title] .mobile-bar {
+    /* Fully opaque, not nearly: at 96% the text scrolling underneath still
+       ghosts through the one line that says which screen you are on. */
+    background-color: var(--canvas);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
   .press-spring {
     transition: transform 200ms var(--ease-premium);
   }

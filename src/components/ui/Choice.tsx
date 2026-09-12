@@ -1,6 +1,7 @@
 import { Check, Minus } from 'lucide-react'
 import { useId, type ReactNode } from 'react'
 
+import { haptic } from '@/lib/haptics'
 import { cn } from '@/lib/utils'
 
 /**
@@ -82,7 +83,10 @@ export function Checkbox({
             type="checkbox"
             checked={checked}
             disabled={disabled}
-            onChange={(event) => onChange(event.target.checked)}
+            onChange={(event) => {
+              haptic('select')
+              onChange(event.target.checked)
+            }}
             className="peer absolute inset-0 size-full cursor-pointer appearance-none rounded-[6px]"
           />
           <span
@@ -139,7 +143,10 @@ export function Radio({
             name={name}
             checked={checked}
             disabled={disabled}
-            onChange={onChange}
+            onChange={() => {
+              haptic('select')
+              onChange()
+            }}
             className="peer absolute inset-0 size-full cursor-pointer appearance-none rounded-full"
           />
           <span
@@ -200,7 +207,10 @@ export function Switch({
             role="switch"
             checked={checked}
             disabled={disabled}
-            onChange={(event) => onChange(event.target.checked)}
+            onChange={(event) => {
+              haptic('select')
+              onChange(event.target.checked)
+            }}
             /* The input covers the drawn track, and on a touch device it is
                inset outwards so the target clears 44px without the track
                itself having to be that tall. */

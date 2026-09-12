@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom'
 
 import { bottomNav } from '@/app/navigation'
+import { haptic } from '@/lib/haptics'
 import { cn } from '@/lib/utils'
 
 /**
@@ -24,6 +25,7 @@ export function BottomNav() {
             key={item.to}
             to={item.to}
             end={item.end}
+            onClick={() => haptic('tick')}
             className={({ isActive }) =>
               cn(
                 'relative flex min-h-[56px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1.5',

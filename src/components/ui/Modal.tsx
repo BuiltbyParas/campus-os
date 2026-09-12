@@ -3,7 +3,8 @@ import { AlertTriangle, X } from 'lucide-react'
 import { useEffect, useRef, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
-import { useReducedMotionPreference } from '@/hooks/useMediaQuery'
+import { useMediaQuery, useReducedMotionPreference } from '@/hooks/useMediaQuery'
+import { haptic } from '@/lib/haptics'
 import { cn } from '@/lib/utils'
 
 import { Button } from './Button'
@@ -42,6 +43,7 @@ export function Modal({
   const panelRef = useRef<HTMLDivElement>(null)
   const restoreTo = useRef<HTMLElement | null>(null)
   const reduced = useReducedMotionPreference()
+  const isPhone = useMediaQuery('(max-width: 639px)')
 
   useEffect(() => {
     if (!open) return
@@ -113,21 +115,44 @@ export function Modal({
             aria-label={title}
             tabIndex={-1}
             className={cn(
-              'app-surface relative w-full rounded-t-2xl border-[1.5px] border-line bg-surface p-6 elev-4 outline-none',
+              'app-surface relative w-full rounded-t-2xl border-[1.5px] border-line bg-surface p-6 pt-3 elev-4 outline-none',
               'max-h-[92vh] overflow-y-auto scrollbar-premium sm:rounded-2xl sm:p-7',
               widths[size],
             )}
-            initial={reduced ? undefined : { opacity: 0, scale: 0.92, y: 16 }}
-            animate={reduced ? undefined : { opacity: 1, scale: 1, y: 0 }}
-            exit={reduced ? undefined : { opacity: 0, scale: 0.92, y: 12 }}
-            transition={{ duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
+            /* A sheet rises from the bottom edge on a phone and scales in from
+               the centre on a desktop, because those are the two places the
+               gesture that opened it came from. */
+            initial={reduced ? undefined : isPhone ? { y: '100%' } : { opacity: 0, scale: 0.92, y: 16 }}
+            animate={reduced ? undefined : isPhone ? { y: 0 } : { opacity: 1, scale: 1, y: 0 }}
+            exit={reduced ? undefined : isPhone ? { y: '100%' } : { opacity: 0, scale: 0.92, y: 12 }}
+            transition={
+              isPhone
+                ? { type: 'spring', stiffness: 380, damping: 36 }
+                : { duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }
+            }
+            /* Drag it down to dismiss — on a phone the grabber is the first
+               thing a thumb reaches for, and a sheet that ignores it feels
+               like a web page wearing a sheet's clothes. */
+            drag={isPhone && !reduced && dismissable ? 'y' : false}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 0.6 }}
+            onDragEnd={(_, info) => {
+              if (info.offset.y > 110 || info.velocity.y > 700) {
+                haptic('tick')
+                onClose()
+              }
+            }}
           >
+            {/* the grabber */}
+            {dismissable ? (
+              <div aria-hidden className="mx-auto mb-3 h-1.5 w-11 rounded-full bg-ink-faint/40 sm:hidden" />
+            ) : null}
             {dismissable ? (
               <button
                 type="button"
                 onClick={onClose}
                 aria-label="Close dialog"
-                className="absolute right-4 top-4 grid size-9 place-items-center rounded-full text-ink-subtle transition-[color,background-color,transform] duration-200 hover:rotate-90 hover:bg-brand-soft hover:text-ink"
+                className="absolute right-4 top-6 grid size-9 place-items-center sm:top-4 rounded-full text-ink-subtle transition-[color,background-color,transform] duration-200 hover:rotate-90 hover:bg-brand-soft hover:text-ink"
               >
                 <X className="size-4" aria-hidden />
               </button>

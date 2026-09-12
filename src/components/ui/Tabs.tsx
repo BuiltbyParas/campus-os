@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { useId } from 'react'
 
+import { haptic } from '@/lib/haptics'
 import { cn } from '@/lib/utils'
 
 export interface TabOption<T extends string> {
@@ -45,7 +46,10 @@ export function Tabs<T extends string>({
             role="radio"
             aria-checked={active}
             type="button"
-            onClick={() => onChange(option.value)}
+            onClick={() => {
+              haptic('tick')
+              onChange(option.value)
+            }}
             className={cn(
               'relative flex-1 rounded-full px-3.5 py-2.5 text-[13px] font-medium transition-colors sm:flex-none sm:py-2',
               active ? 'text-ink' : 'text-ink-muted hover:text-ink',

@@ -35,7 +35,7 @@ export function MobileHeader({ onOpenCommandPalette }: { onOpenCommandPalette: (
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-line bg-canvas/85 backdrop-blur-[12px] md:hidden">
+      <header className="mobile-bar sticky top-0 z-40 border-b border-line bg-canvas/85 backdrop-blur-[12px] md:hidden">
         <div className="flex h-16 items-center gap-1 px-2 pl-1">
           <button
             type="button"
@@ -53,7 +53,7 @@ export function MobileHeader({ onOpenCommandPalette }: { onOpenCommandPalette: (
               returns as soon as there is room for it. */}
           <Link
             to="/app"
-            className="-my-2 inline-flex min-w-0 items-center gap-2.5 rounded-tile px-1.5 py-2"
+            className="brand-lockup -my-2 inline-flex min-w-0 items-center gap-2.5 rounded-tile px-1.5 py-2"
             aria-label="CampusOS dashboard"
           >
             <LogoMark className="size-8 shrink-0" />
@@ -64,7 +64,7 @@ export function MobileHeader({ onOpenCommandPalette }: { onOpenCommandPalette: (
 
           {/* The live clock, which is what makes every countdown on the screen
               below legible without arithmetic. */}
-          <span className="ml-auto flex shrink-0 items-center gap-1.5 pr-1">
+          <span className="brand-lockup ml-auto flex shrink-0 items-center gap-1.5 pr-1">
             <span aria-hidden className="relative flex size-1.5">
               <span className="absolute inline-flex size-full rounded-full bg-ok opacity-60 [animation:pulse-ring_2.4s_ease-out_infinite]" />
               <span className="relative inline-flex size-1.5 rounded-full bg-ok" />

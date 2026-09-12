@@ -1,21 +1,27 @@
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { ChevronRight, Clock3, MapPin, ScanLine, User } from 'lucide-react'
 import { useState } from 'react'
 
 import { DayAxis } from '@/components/app/DayAxis'
 import { NextClassHero } from '@/components/app/NextClassHero'
 import { TodayTimeline } from '@/components/app/TodayTimeline'
 import { PageContainer, PageHeader } from '@/components/layout/PageContainer'
+import { useSwipeViews } from '@/hooks/useSwipeViews'
 import { Skeleton, SkeletonRows } from '@/components/ui/Skeleton'
+import { ButtonLink } from '@/components/ui/Button'
+import { DemoNote } from '@/components/ui/DemoTag'
+import { Modal } from '@/components/ui/Modal'
 import { Tabs } from '@/components/ui/Tabs'
 import { ErrorState } from '@/components/ui/States'
 import { courseById, weekdayLabel, weekdays } from '@/data'
 import { buildDayAgenda } from '@/lib/agenda'
 import { easeOutSoft } from '@/lib/motion'
+import { haptic } from '@/lib/haptics'
 import { cn, formatTime } from '@/lib/utils'
 import { sessionsForDay, weekdayFromDate, withStatus } from '@/services/academics'
-import { useDeadlines, useEvents, useTimetable } from '@/services/queries'
+import { useAttendance, useDeadlines, useEvents, useTimetable } from '@/services/queries'
 import { toLocalIsoDate } from '@/data'
-import type { Weekday } from '@/types'
+import type { ClassSession, Weekday } from '@/types'
 
 /** The three ways a student actually asks about their schedule. */
 type View = 'today' | 'tomorrow' | 'week'
@@ -40,6 +46,12 @@ export default function Timetable() {
   const now = new Date()
   const today = weekdayFromDate(now)
   const [view, setView] = useState<View>('today')
+  const [openSession, setOpenSession] = useState<ClassSession | null>(null)
+  const swipeRef = useSwipeViews<View>({
+    values: ['today', 'tomorrow', 'week'],
+    value: view,
+    onChange: setView,
+  })
 
   const sessions = withStatus(timetable.data ?? [], now)
 
@@ -105,9 +117,23 @@ export default function Timetable() {
       ) : (
         <>
           {/* --------------------------------------------- now / next / later */}
-          {today ? <NextClassHero now={currentItem} next={nextItem} /> : null}
+          {today ? (
+            <NextClassHero
+              now={currentItem}
+              next={nextItem}
+              sessionsToday={sessionsForDay(sessions, today).length}
+              hideWeekLink
+            />
+          ) : null}
 
+          <div ref={swipeRef} className="space-y-5">
           <Tabs options={options} value={view} onChange={setView} label="Schedule view" />
+
+          {/* The segmented control names the views; the swipe moves between
+              them, which is how a phone expects sibling views to behave. */}
+          <p className="text-center text-[11.5px] text-ink-faint md:hidden">
+            Swipe to move between today, tomorrow and the week
+          </p>
 
           {/* The mode change is a move between related views, so it crossfades
               with a small directional shift rather than cutting. */}
@@ -121,7 +147,7 @@ export default function Timetable() {
               className="space-y-5"
             >
               {view === 'week' ? (
-                <WeekGrid sessions={sessions} today={today} />
+                <WeekGrid sessions={sessions} today={today} onSelect={setOpenSession} />
               ) : (
                 <>
                   {/* the shape of the day, with the live position marked */}
@@ -165,23 +191,131 @@ export default function Timetable() {
               )}
             </motion.div>
           </AnimatePresence>
+          </div>
+
+          <ClassSheet session={openSession} onClose={() => setOpenSession(null)} />
         </>
       )}
     </PageContainer>
   )
 }
 
-/** The full teaching week, for the days a student is planning rather than living. */
+/**
+ * The full teaching week, for the days a student is planning rather than living.
+ *
+ * Two renderings of one week, because a six-column grid and a phone are not
+ * compatible: at 390px that grid is 720px wide, so Thursday to Saturday sit
+ * off-screen behind a horizontal scroll with no affordance pointing at them —
+ * the week appears to be three days long. Below `md` the same sessions are
+ * stacked as a day-by-day list instead, which carries every day and every
+ * class without asking anyone to scroll sideways.
+ */
 function WeekGrid({
   sessions,
   today,
+  onSelect,
 }: {
   sessions: ReturnType<typeof withStatus>
   today: Weekday | null
+  /** Opens the detail sheet. Phone only — the grid has room to show more. */
+  onSelect: (session: ClassSession) => void
 }) {
   return (
     <section>
-      <div className="overflow-x-auto card-premium">
+      {/* ---------------------------------------------------- phones: a list */}
+      <div className="space-y-3 md:hidden">
+        {weekdays.map((day) => {
+          const dayClasses = sessionsForDay(sessions, day)
+          const isToday = day === today
+          return (
+            <div
+              key={day}
+              className={cn(
+                'card-premium overflow-hidden',
+                isToday && 'border-brand-border shadow-[var(--shadow-xs),var(--glow-xs)]',
+              )}
+            >
+              <div
+                className={cn(
+                  'flex items-center justify-between gap-3 border-b border-line px-4 py-3',
+                  isToday && 'bg-brand-soft',
+                )}
+              >
+                <h3
+                  className={cn(
+                    'flex items-center gap-2 text-[15px] font-bold',
+                    isToday ? 'text-brand-ink' : 'text-ink',
+                  )}
+                >
+                  {weekdayLabel[day]}
+                  {isToday ? (
+                    <span className="rounded-full bg-brand px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.5px] text-on-brand">
+                      Today
+                    </span>
+                  ) : null}
+                </h3>
+                <span className="shrink-0 text-[12.5px] text-ink-subtle">
+                  {dayClasses.length === 0
+                    ? 'No classes'
+                    : `${dayClasses.length} ${dayClasses.length === 1 ? 'class' : 'classes'}`}
+                </span>
+              </div>
+
+              {dayClasses.length === 0 ? (
+                <p className="px-4 py-5 text-[13.5px] text-ink-subtle">
+                  Nothing scheduled — a clear day.
+                </p>
+              ) : (
+                <ul className="divide-y divide-divider">
+                  {dayClasses.map((session) => {
+                    const course = courseById.get(session.courseId)
+                    const running = session.status === 'ongoing'
+                    return (
+                      <li key={session.id}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          haptic('tick')
+                          onSelect(session)
+                        }}
+                        className={cn(
+                          'flex w-full items-start gap-3.5 px-4 py-3.5 text-left transition-colors active:bg-brand-soft',
+                          running && 'bg-brand-soft',
+                          session.status === 'completed' && 'opacity-55',
+                        )}
+                      >
+                        <span className="w-[60px] shrink-0 pt-0.5 text-[12.5px] font-semibold tabular-nums text-brand-ink">
+                          {formatTime(session.startTime)}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="flex items-center gap-2">
+                            <span className="truncate text-[14.5px] font-medium text-ink">
+                              {course?.name ?? course?.short ?? 'Class'}
+                            </span>
+                            {running ? (
+                              <span className="shrink-0 rounded-full bg-ok-soft px-2 py-0.5 text-[10px] font-bold uppercase text-ok-ink">
+                                Now
+                              </span>
+                            ) : null}
+                          </span>
+                          <span className="mt-0.5 block text-[12.5px] text-ink-subtle">
+                            {session.block} · {session.room}
+                          </span>
+                        </span>
+                        <ChevronRight className="mt-0.5 size-4 shrink-0 text-ink-faint" aria-hidden />
+                      </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* ------------------------------------------------- desktop: the grid */}
+      <div className="hidden overflow-x-auto card-premium md:block">
         <div className="grid min-w-[720px] grid-cols-6 gap-px bg-line">
           {weekdays.map((day) => {
             const dayClasses = sessionsForDay(sessions, day)
@@ -238,5 +372,88 @@ function WeekGrid({
         </div>
       </div>
     </section>
+  )
+}
+
+/**
+ * One class, in full.
+ *
+ * A row in a timetable can only carry a time and a room; everything else about
+ * a session — who teaches it, what kind it is, how attendance in that course
+ * stands — needs somewhere to go. On a phone that somewhere is a sheet you
+ * pull up and flick away, which is cheaper than a navigation and keeps the
+ * week you were reading underneath.
+ */
+function ClassSheet({
+  session,
+  onClose,
+}: {
+  session: ClassSession | null
+  onClose: () => void
+}) {
+  const attendance = useAttendance()
+  const course = session ? courseById.get(session.courseId) : undefined
+  const record = attendance.data?.courses.find((entry) => entry.courseId === session?.courseId)
+
+  return (
+    <Modal open={Boolean(session)} onClose={onClose} size="sm">
+      {session ? (
+        <>
+          <p className="text-[11px] font-bold uppercase tracking-[1px] text-ink-faint">
+            {weekdayLabel[session.day]} · {session.kind}
+          </p>
+          <h2 className="mt-1.5 text-[24px] font-bold tracking-[-0.02em] text-ink">
+            {course?.name ?? 'Class'}
+          </h2>
+          <p className="mt-1 text-[13px] text-ink-subtle">{course?.code}</p>
+
+          <dl className="mt-5 grid grid-cols-2 gap-3">
+            {[
+              { icon: Clock3, label: 'Time', value: `${formatTime(session.startTime)} – ${formatTime(session.endTime)}` },
+              { icon: MapPin, label: 'Where', value: `${session.block} · ${session.room}` },
+              { icon: User, label: 'Taught by', value: session.faculty },
+              {
+                icon: ScanLine,
+                label: 'Your attendance',
+                value: record ? `${Math.round(record.percentage)}%` : 'Not recorded',
+                tone: record && record.status === 'below' ? 'text-danger-ink' : undefined,
+              },
+            ].map((row) => (
+              <div key={row.label} className="rounded-tile border border-line bg-field-raised p-3">
+                <dt className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.5px] text-ink-faint">
+                  <row.icon className="size-3.5" aria-hidden />
+                  {row.label}
+                </dt>
+                <dd className={cn('mt-1 text-[14px] font-semibold text-ink', row.tone)}>
+                  {row.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+
+          {session.note ? (
+            <p className="mt-4 rounded-tile border border-warn/25 bg-warn-soft px-3.5 py-3 text-[13px] text-warn-ink">
+              {session.note}
+            </p>
+          ) : null}
+
+          <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+            <ButtonLink to="/app/attendance" variant="secondary" size="md" block>
+              View attendance
+            </ButtonLink>
+            <ButtonLink
+              to={`/app/assistant?q=${encodeURIComponent(`Can I skip my next ${course?.short ?? ''} class?`)}`}
+              variant="primary"
+              size="md"
+              block
+            >
+              Ask CampusOS
+            </ButtonLink>
+          </div>
+
+          <DemoNote className="mt-4" />
+        </>
+      ) : null}
+    </Modal>
   )
 }

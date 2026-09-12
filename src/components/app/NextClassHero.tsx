@@ -20,12 +20,19 @@ import type { AgendaItem } from '@/types'
 export function NextClassHero({
   now,
   next,
-  sessionsToday = 0,
+  sessionsToday,
+  hideWeekLink,
   className,
 }: {
   now?: AgendaItem
   next?: AgendaItem
-  /** How many classes today held, used only by the finished-for-the-day state. */
+  /** Set on the timetable, where the link would point at the current page. */
+  hideWeekLink?: boolean
+  /**
+   * How many classes today held. Optional, and deliberately not defaulted:
+   * "nothing was scheduled" and "I do not know what was scheduled" are
+   * different claims, and only the caller can tell them apart.
+   */
   sessionsToday?: number
   className?: string
 }) {
@@ -60,18 +67,22 @@ export function NextClassHero({
           You’re done for the day
         </p>
         <p className="relative mt-2 max-w-md text-[15px] leading-relaxed text-ink-muted">
-          {sessionsToday > 0
-            ? `All ${sessionsToday} of today’s classes are behind you. Tomorrow’s appear here in the morning.`
-            : 'Nothing is scheduled today. Tomorrow’s classes appear here in the morning.'}
+          {sessionsToday === undefined
+            ? 'Nothing else is scheduled today. Tomorrow’s classes appear here in the morning.'
+            : sessionsToday > 0
+              ? `All ${sessionsToday} of today’s classes are behind you. Tomorrow’s appear here in the morning.`
+              : 'Nothing is scheduled today. Tomorrow’s classes appear here in the morning.'}
         </p>
 
-        <Link
-          to="/app/timetable"
-          className="relative mt-7 inline-flex items-center gap-2 rounded-full border border-line bg-field-raised px-4 py-2.5 text-[14px] font-semibold text-ink-muted transition-[border-color,color,box-shadow] duration-200 hover:border-line-strong hover:text-ink hover:shadow-[var(--glow-xs)]"
-        >
-          See the week ahead
-          <ArrowRight className="size-4" aria-hidden />
-        </Link>
+        {hideWeekLink ? null : (
+          <Link
+            to="/app/timetable"
+            className="relative mt-7 inline-flex items-center gap-2 rounded-full border border-line bg-field-raised px-4 py-2.5 text-[14px] font-semibold text-ink-muted transition-[border-color,color,box-shadow] duration-200 hover:border-line-strong hover:text-ink hover:shadow-[var(--glow-xs)]"
+          >
+            See the week ahead
+            <ArrowRight className="size-4" aria-hidden />
+          </Link>
+        )}
       </section>
     )
   }

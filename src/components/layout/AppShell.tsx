@@ -10,7 +10,9 @@ import { AmbientBackdrop } from './AmbientBackdrop'
 import { AssistantLauncher } from './AssistantLauncher'
 import { BottomNav } from './BottomNav'
 import { DemoModeBanner } from './DemoModeBanner'
+import { InstallPrompt } from './InstallPrompt'
 import { MobileHeader } from './MobileHeader'
+import { PullToRefresh } from './PullToRefresh'
 import { QuickStats } from './QuickStats'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
@@ -61,6 +63,7 @@ export function AppShell() {
         <QuickStats />
         <DemoModeBanner />
 
+        <PullToRefresh>
         <main id="main" className="pb-32 pt-5 sm:pt-6 lg:pb-24 lg:pt-8">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
@@ -74,10 +77,12 @@ export function AppShell() {
             </motion.div>
           </AnimatePresence>
         </main>
+        </PullToRefresh>
       </div>
 
       <AssistantLauncher />
       <BottomNav />
+      <InstallPrompt />
       <CommandPalette open={palette.open} onClose={palette.close} />
       <ScrollRestoration />
     </div>
