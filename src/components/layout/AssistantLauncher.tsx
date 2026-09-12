@@ -23,7 +23,7 @@ export function AssistantLauncher() {
       aria-label="Ask the CampusOS assistant"
       className="group fixed bottom-[calc(5.75rem+env(safe-area-inset-bottom))] right-4 z-40 lg:bottom-8 lg:right-8"
     >
-      <span className="relative grid size-16 place-items-center">
+      <span className="relative grid size-14 place-items-center lg:size-16">
         {/* The halo is a sibling rather than a shadow so it can scale on its
             own without dragging the icon with it. */}
         <span
@@ -32,13 +32,13 @@ export function AssistantLauncher() {
         />
         <span
           className={[
-            'grad-accent relative grid size-16 place-items-center rounded-full border border-brand-border text-on-brand elev-4',
+            'grad-accent relative grid size-14 place-items-center rounded-full border border-brand-border text-on-brand elev-4 lg:size-16',
             'transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]',
             'group-hover:-translate-y-1.5 group-hover:scale-110 group-hover:shadow-[var(--shadow-lg),var(--glow-l)]',
             'group-active:scale-95',
           ].join(' ')}
         >
-          <Sparkles className="size-7 transition-transform duration-300 group-hover:rotate-12" aria-hidden />
+          <Sparkles className="size-6 transition-transform duration-300 group-hover:rotate-12 lg:size-7" aria-hidden />
         </span>
       </span>
 

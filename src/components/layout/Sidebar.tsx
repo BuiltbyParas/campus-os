@@ -3,12 +3,10 @@ import { NavLink } from 'react-router-dom'
 
 import { accountNav, navSections, type NavItem } from '@/app/navigation'
 import { useStore } from '@/app/store'
+import { useNavBadges } from '@/hooks/useNavBadges'
 import { cn } from '@/lib/utils'
-import { useToday } from '@/services/queries'
 
 import { Logo, LogoMark } from './Logo'
-
-type BadgeCounts = Partial<Record<NonNullable<NavItem['badge']>, { value: string; tone: string }>>
 
 /**
  * A navigation row.
@@ -99,31 +97,7 @@ function SidebarLink({
  */
 export function Sidebar({ onOpenCommandPalette }: { onOpenCommandPalette: () => void }) {
   const { student } = useStore()
-  const { view } = useToday(new Date())
-
-  /* Counts come from the same view every page renders, so a rail badge can
-     never claim something the destination does not show. */
-  const badges: BadgeCounts = {}
-  if (view.weakestCourse && view.weakestCourse.status !== 'safe') {
-    badges.attendance = {
-      value: `${Math.round(view.weakestCourse.percentage)}%`,
-      tone: view.weakestCourse.status === 'below'
-        ? 'bg-danger-soft text-danger-ink'
-        : 'bg-warn-soft text-warn-ink',
-    }
-  }
-  if (view.openRequests.length > 0) {
-    badges.complaints = {
-      value: String(view.openRequests.length),
-      tone: 'bg-brand-soft text-brand-ink',
-    }
-  }
-  if (view.exams?.next) {
-    badges.exams = { value: 'soon', tone: 'bg-warn-soft text-warn-ink' }
-  }
-  if (view.fees?.nextDue) {
-    badges.fees = { value: 'due', tone: 'bg-warn-soft text-warn-ink' }
-  }
+  const badges = useNavBadges()
 
   return (
     <aside className="fixed inset-y-0 left-0 z-40 hidden w-[90px] md:block lg:w-[280px]">

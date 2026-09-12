@@ -81,7 +81,7 @@ export function Greeting({
   const summary = view ? buildSummaryLine(view) : null
 
   return (
-    <section className="group relative min-h-[200px] overflow-hidden rounded-card border-[1.5px] border-line bg-[linear-gradient(135deg,var(--surface)_0%,var(--canvas)_100%)] p-7 elev-2 transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.2,0.9,0.1,1)] hover:-translate-y-3 hover:border-line-strong hover:shadow-[var(--shadow-md),var(--glow-m)] sm:p-8">
+    <section className="group relative min-h-[176px] overflow-hidden rounded-card sm:min-h-[200px] border-[1.5px] border-line bg-[linear-gradient(135deg,var(--surface)_0%,var(--canvas)_100%)] p-7 elev-2 transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.2,0.9,0.1,1)] hover:-translate-y-3 hover:border-line-strong hover:shadow-[var(--shadow-md),var(--glow-m)] sm:p-8">
       {/* A very slow wash across the surface. At 45s it is below the threshold
           of notice on a glance and only reads over a long look — depth rather
           than animation. */}
@@ -339,7 +339,12 @@ export function StatCard({ stat, className }: { stat: Stat; className?: string }
         )}
       />
 
-      <div className="relative flex items-start justify-between gap-3">
+      {/* Two cards fit across a phone, which leaves roughly 100px beside the
+          icon — not enough for a word like "ATTENDANCE", which then clips
+          rather than wraps. So the label takes its own full-width line below
+          the icon on small screens, and only shares the row once there is room
+          for it. */}
+      <div className="relative flex flex-col items-start gap-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
         <span
           className={cn(
             'grid size-10 shrink-0 place-items-center rounded-tile transition-[transform,box-shadow] duration-250 group-hover:scale-120',
@@ -348,7 +353,7 @@ export function StatCard({ stat, className }: { stat: Stat; className?: string }
         >
           <stat.icon className="size-5" aria-hidden />
         </span>
-        <p className="line-clamp-2 text-right text-[11px] font-bold uppercase leading-tight tracking-[0.5px] text-ink-faint sm:line-clamp-1">
+        <p className="line-clamp-2 w-full text-left text-[11px] font-bold uppercase leading-tight tracking-[0.5px] text-ink-faint sm:w-auto sm:min-w-0 sm:text-right sm:line-clamp-1">
           {stat.label}
         </p>
       </div>

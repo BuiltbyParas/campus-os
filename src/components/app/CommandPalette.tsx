@@ -167,13 +167,13 @@ export function CommandPalette({
     <AnimatePresence>
       {open ? (
         <div
-          className="fixed inset-0 z-[60] flex items-start justify-center px-4 pt-[12vh] sm:pt-[16vh]"
+          className="fixed inset-0 z-[60] flex items-start justify-center px-3 pt-[max(4vh,env(safe-area-inset-top))] sm:px-4 sm:pt-[16vh]"
           role="dialog"
           aria-modal="true"
           aria-label="Command palette"
         >
           <motion.div
-            className="absolute inset-0 bg-overlay backdrop-blur-sm"
+            className="absolute inset-0 bg-black/60 backdrop-blur-[8px]"
             initial={reduced ? undefined : { opacity: 0 }}
             animate={reduced ? undefined : { opacity: 1 }}
             exit={reduced ? undefined : { opacity: 0 }}
@@ -182,7 +182,7 @@ export function CommandPalette({
           />
 
           <motion.div
-            className="glass-modal relative w-full max-w-[560px] overflow-hidden rounded-2xl"
+            className="glass-modal relative flex max-h-[86vh] w-full max-w-[560px] flex-col overflow-hidden rounded-2xl elev-4 sm:max-h-[70vh]"
             initial={reduced ? undefined : { opacity: 0, y: -8, scale: 0.985 }}
             animate={reduced ? undefined : { opacity: 1, y: 0, scale: 1 }}
             exit={reduced ? undefined : { opacity: 0, y: -8, scale: 0.99 }}
@@ -233,7 +233,7 @@ export function CommandPalette({
                         onClick={() => run(item)}
                         onMouseEnter={() => setActive(i)}
                         className={cn(
-                          'flex w-full items-center gap-3 rounded-tile px-3 py-2.5 text-left transition-colors',
+                          'flex min-h-[48px] w-full items-center gap-3 rounded-tile px-3 py-2.5 text-left transition-colors sm:min-h-0',
                           selected ? 'bg-brand-soft' : 'hover:bg-surface-raised',
                         )}
                       >
@@ -279,7 +279,7 @@ export function CommandPalette({
 
             {/* footer */}
             <div className="flex items-center justify-between gap-3 border-t border-line px-4 py-2.5">
-              <span className="flex items-center gap-3 text-[11px] text-ink-subtle">
+              <span className="hidden items-center gap-3 text-[11px] text-ink-subtle sm:flex">
                 <span className="flex items-center gap-1">
                   <kbd className="rounded border border-line px-1 py-0.5">↑</kbd>
                   <kbd className="rounded border border-line px-1 py-0.5">↓</kbd>

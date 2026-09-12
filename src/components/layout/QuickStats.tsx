@@ -57,7 +57,7 @@ function Stat({
     <Link
       to={to}
       title={`${label}: ${value}`}
-      className="group flex shrink-0 items-center gap-2 rounded-full px-2.5 py-1 transition-colors duration-200 hover:bg-brand-soft"
+      className="group flex min-h-[44px] shrink-0 items-center gap-2 rounded-full px-3 transition-colors duration-200 hover:bg-brand-soft active:bg-brand-soft md:min-h-0 md:px-2.5 md:py-1"
     >
       <Icon className="size-3.5 shrink-0 text-ink-faint transition-colors group-hover:text-brand-ink" aria-hidden />
       <span className="whitespace-nowrap text-[11.5px] text-ink-subtle">{label}</span>
@@ -84,8 +84,16 @@ export function QuickStats() {
   const deadlines = view.agenda.filter((item) => item.kind === 'deadline').length
 
   return (
-    <div className="sticky top-[72px] z-30 hidden border-b border-divider bg-canvas-2/70 backdrop-blur-md md:block">
-      <div className="mx-auto flex h-10 max-w-[1600px] items-center gap-1 overflow-x-auto px-8 scrollbar-none">
+    <div
+      className={cn(
+        /* On a desktop it is pinned under the 72px top bar and always on
+           screen. On a phone it scrolls away with the content: a 64px header
+           plus a pinned strip would spend an eighth of the viewport on chrome
+           before a single figure of the student's own data appears. */
+        'z-30 border-b border-divider bg-canvas-2/70 backdrop-blur-md md:sticky md:top-[72px]',
+      )}
+    >
+      <div className="mx-auto flex h-12 max-w-[1600px] items-center gap-1 overflow-x-auto px-2 scrollbar-none md:h-10 md:px-8">
         {view.next ? (
           <Stat
             icon={CalendarDays}
@@ -132,7 +140,7 @@ export function QuickStats() {
           />
         ) : null}
 
-        <span className="ml-auto shrink-0 whitespace-nowrap pl-4 text-[10.5px] uppercase tracking-[0.08em] text-ink-faint">
+        <span className="ml-auto hidden shrink-0 whitespace-nowrap pl-4 text-[10.5px] uppercase tracking-[0.08em] text-ink-faint md:block">
           Demo data
         </span>
       </div>

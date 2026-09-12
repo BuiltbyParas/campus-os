@@ -40,7 +40,7 @@ export function NextClassHero({
     return (
       <section
         className={cn(
-          'card-premium relative flex min-h-[280px] flex-col items-start justify-center overflow-hidden p-7 sm:p-8',
+          'card-premium relative flex min-h-[240px] flex-col items-start justify-center overflow-hidden p-6 sm:min-h-[280px] sm:p-8',
           className,
         )}
       >
@@ -83,7 +83,7 @@ export function NextClassHero({
       ref={ref}
       {...tiltProps}
       className={cn(
-        'tilt group relative min-h-[280px] overflow-hidden rounded-card border-[1.5px] border-brand-border',
+        'tilt group relative min-h-[240px] overflow-hidden rounded-card border-[1.5px] border-brand-border sm:min-h-[280px]',
         'grad-accent grad-drift text-white elev-3',
         'shadow-[var(--shadow-md),var(--glow-l)] transition-shadow duration-300',
         'hover:shadow-[var(--shadow-lg),0_0_44px_rgb(99_102_241_/_0.55)] group-hover:grad-drift-fast',
@@ -110,7 +110,7 @@ export function NextClassHero({
         }}
       />
 
-      <div className="tilt-layer relative flex min-h-[280px] flex-col p-7 sm:p-8">
+      <div className="tilt-layer relative flex min-h-[240px] flex-col p-6 sm:min-h-[280px] sm:p-8">
         <div className="flex flex-wrap items-center gap-2.5">
           {running ? (
             <span aria-hidden className="relative flex size-2">
