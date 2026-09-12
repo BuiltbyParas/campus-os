@@ -34,7 +34,7 @@ export function AttendanceRow({
     <div className={cn('group -mx-3 rounded-tile px-3 py-4 transition-colors duration-200 hover:bg-surface-raised', className)}>
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="truncate text-[14.5px] font-medium text-ink transition-colors duration-200 group-hover:text-brand-ink">
+          <p className="line-clamp-2 text-[14.5px] font-medium text-ink transition-colors duration-200 group-hover:text-brand-ink sm:line-clamp-1">
             {course?.name ?? 'Course'}
           </p>
           <p className="mt-0.5 text-[12.5px] text-ink-subtle">

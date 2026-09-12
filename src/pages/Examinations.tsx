@@ -278,14 +278,14 @@ function NextExam({
               to={`/app/assistant?q=${encodeURIComponent(
                 `What should I revise for my ${course?.short ?? ''} exam?`.replace('  ', ' '),
               )}`}
-              className="press inline-flex h-9 items-center gap-1.5 rounded-control border border-line bg-surface px-3 text-[13px] font-medium text-ink hover:border-line-strong"
+              className="press inline-flex h-11 items-center gap-1.5 rounded-control border border-line bg-surface px-3 text-[13px] font-medium text-ink hover:border-line-strong sm:h-9"
             >
               <Sparkles className="size-3.5 text-brand-ink" aria-hidden />
               Ask CampusOS
             </Link>
             <Link
               to="/app/academics"
-              className="press inline-flex h-9 items-center rounded-control border border-line bg-surface px-3 text-[13px] font-medium text-ink hover:border-line-strong"
+              className="press inline-flex h-11 items-center rounded-control border border-line bg-surface px-3 text-[13px] font-medium text-ink hover:border-line-strong sm:h-9"
             >
               View marks
             </Link>

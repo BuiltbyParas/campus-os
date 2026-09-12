@@ -307,7 +307,7 @@ function CourseCard({ result }: { result: CourseResult }) {
             to={`/app/assistant?q=${encodeURIComponent(
               `Should I apply for re-evaluation in ${course?.short ?? 'this course'}?`,
             )}`}
-            className="press inline-flex h-8 shrink-0 items-center gap-1.5 rounded-control border border-line bg-surface px-3 text-[12.5px] font-medium text-ink hover:border-line-strong"
+            className="press inline-flex h-10 shrink-0 items-center gap-1.5 rounded-control border border-line bg-surface px-3 text-[12.5px] font-medium text-ink hover:border-line-strong sm:h-8"
           >
             <Sparkles className="size-3.5 text-brand-ink" aria-hidden />
             Ask CampusOS

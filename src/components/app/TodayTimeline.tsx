@@ -64,7 +64,7 @@ export function TodayTimeline({ items }: { items: AgendaItem[] }) {
                 />
                 <p
                   className={cn(
-                    'truncate text-[14px]',
+                    'line-clamp-2 text-[14px] sm:line-clamp-1',
                     gap ? 'font-normal text-ink-muted' : 'font-medium text-ink',
                   )}
                 >
@@ -73,7 +73,7 @@ export function TodayTimeline({ items }: { items: AgendaItem[] }) {
               </div>
 
               {item.subtitle ? (
-                <p className="mt-1 flex items-center gap-1.5 truncate pl-[22px] text-[12.5px] text-ink-subtle">
+                <p className="mt-1 flex items-start gap-1.5 pl-[22px] text-[12.5px] text-ink-subtle">
                   {item.kind === 'class' || item.kind === 'event' ? (
                     <MapPin className="size-3 shrink-0" aria-hidden />
                   ) : null}

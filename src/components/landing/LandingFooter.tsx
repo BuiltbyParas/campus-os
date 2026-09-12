@@ -20,12 +20,12 @@ export function LandingFooter() {
               <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">
                 {group.heading}
               </h3>
-              <ul className="mt-4 space-y-2.5">
+              <ul className="mt-2 space-y-0.5 sm:mt-4 sm:space-y-2.5">
                 {group.links.map((link) => (
                   <li key={link.label}>
                     <a
                       href={link.href}
-                      className="text-[13.5px] text-ink-muted transition-colors duration-150 hover:text-ink"
+                      className="-mx-1 inline-flex min-h-11 items-center px-1 text-[13.5px] text-ink-muted transition-colors duration-150 hover:text-ink sm:min-h-0"
                     >
                       {link.label}
                     </a>

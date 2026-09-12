@@ -4,7 +4,11 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  /* GitHub Pages serves the project from /campus-os/, so the built asset URLs
+     have to carry that prefix. `npm run dev` keeps the site at the root. */
+  base: command === 'build' ? '/campus-os/' : '/',
+
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
@@ -23,4 +27,4 @@ export default defineConfig({
   build: {
     target: 'es2022',
   },
-})
+}))

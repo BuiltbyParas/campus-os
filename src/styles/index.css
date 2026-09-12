@@ -219,6 +219,9 @@
     scroll-behavior: smooth;
     /* Anchored sections clear the sticky landing navbar. */
     scroll-padding-top: 6rem;
+    /* iOS inflates text in landscape unless this is pinned. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
@@ -229,6 +232,41 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     overscroll-behavior-y: none;
+    /* A phone in landscape puts the notch beside the content, not above it. */
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+
+  /* ---- Touch devices -------------------------------------------------
+
+     Two things a desktop browser never does and every phone does:
+
+       1. iOS zooms the whole page when a field smaller than 16px takes
+          focus, and never zooms back out. Every input therefore reads at
+          16px on a touch device regardless of its design size — the one
+          place the type scale is allowed to be overridden.
+       2. Touch browsers hold a ~300ms window after a tap to see whether a
+          double-tap is coming. `touch-action: manipulation` declines it,
+          which is the whole difference between the app feeling native and
+          feeling like a website.
+     -------------------------------------------------------------------- */
+  @media (pointer: coarse) {
+    input,
+    select,
+    textarea {
+      font-size: max(16px, 1em);
+    }
+
+    a,
+    button,
+    label,
+    summary,
+    [role='button'],
+    [role='radio'],
+    [role='switch'],
+    [role='tab'] {
+      touch-action: manipulation;
+    }
   }
 
   /* Visible, consistent focus for keyboard users only. */
@@ -310,6 +348,25 @@
   @media (prefers-reduced-motion: reduce) {
     .shimmer::after {
       animation: none;
+    }
+  }
+
+  /* ---- .tap ----------------------------------------------------------
+
+     An inline text link cannot be padded to 44px without pushing the text
+     around it out of place, so on touch devices it grows a transparent
+     pseudo-element instead: the type stays where the layout puts it and the
+     thumb still gets a target it can hit. Pointer devices are untouched.
+     -------------------------------------------------------------------- */
+  .tap {
+    position: relative;
+  }
+
+  @media (pointer: coarse) {
+    .tap::after {
+      content: '';
+      position: absolute;
+      inset: -10px -8px;
     }
   }
 

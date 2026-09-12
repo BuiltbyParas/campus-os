@@ -42,7 +42,7 @@ export function InsightRow({ insights, className }: { insights: Insight[]; class
         const tone = insight.tone ?? 'info'
         return (
           <div key={insight.label} className="flex flex-col bg-surface px-4 py-3.5">
-            <dt className="truncate text-[11.5px] text-ink-subtle">{insight.label}</dt>
+            <dt className="line-clamp-2 text-[11.5px] text-ink-subtle sm:line-clamp-1">{insight.label}</dt>
             <dd
               className={cn(
                 'mt-1.5 truncate text-[19px] font-semibold leading-none tracking-tight tabular-nums',
@@ -53,7 +53,7 @@ export function InsightRow({ insights, className }: { insights: Insight[]; class
             </dd>
 
             {insight.detail ? (
-              <p className="mt-1.5 truncate text-[11px] text-ink-subtle">{insight.detail}</p>
+              <p className="mt-1.5 line-clamp-2 text-[11px] text-ink-subtle sm:line-clamp-1">{insight.detail}</p>
             ) : null}
 
             {insight.progress !== undefined ? (

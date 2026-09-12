@@ -93,7 +93,7 @@ export function AssistantLaunch({ className }: { className?: string }) {
             <button
               type="submit"
               aria-label="Ask CampusOS"
-              className="press grid size-8 shrink-0 place-items-center rounded-md bg-brand text-on-brand transition-colors hover:bg-brand-hover"
+              className="press grid size-10 shrink-0 place-items-center rounded-md bg-brand text-on-brand transition-colors hover:bg-brand-hover sm:size-8"
             >
               <ArrowRight className="size-4" aria-hidden />
             </button>
@@ -108,7 +108,7 @@ export function AssistantLaunch({ className }: { className?: string }) {
               <button
                 type="button"
                 onClick={() => ask(suggestion)}
-                className="press rounded-full border border-line bg-surface/50 px-2.5 py-1.5 text-left text-[12px] text-ink-muted transition-colors hover:border-line-strong hover:text-ink"
+                className="press rounded-full border border-line bg-surface/50 px-3 py-2.5 text-left text-[12px] text-ink-muted transition-colors hover:border-line-strong hover:text-ink sm:px-2.5 sm:py-1.5"
               >
                 {suggestion}
               </button>
@@ -123,7 +123,7 @@ export function AssistantLaunch({ className }: { className?: string }) {
 
         <Link
           to="/app/assistant"
-          className="mt-3 inline-flex items-center gap-1.5 text-[12.5px] font-medium text-brand-ink transition-colors hover:text-ink"
+          className="tap mt-3 inline-flex items-center gap-1.5 text-[12.5px] font-medium text-brand-ink transition-colors hover:text-ink"
         >
           Open the assistant
           <ArrowRight className="size-3.5" aria-hidden />

@@ -63,6 +63,9 @@ function Toggle({
         onClick={() => onChange(!checked)}
         className={cn(
           'relative mt-0.5 h-6 w-11 shrink-0 rounded-full border transition-colors duration-200',
+          /* The visible track stays 24px; the touch target is expanded to 44px
+             with a transparent pseudo-element so the thumb has something to hit. */
+          'after:absolute after:-inset-x-1 after:-inset-y-2.5 after:content-[""]',
           checked ? 'border-brand bg-brand' : 'border-line bg-surface-muted',
         )}
       >
@@ -159,7 +162,7 @@ export default function Settings() {
           </div>
           <Link
             to="/app/profile"
-            className="shrink-0 text-[13px] font-medium text-brand-ink hover:text-ink"
+            className="tap shrink-0 text-[13px] font-medium text-brand-ink hover:text-ink"
           >
             View profile
           </Link>

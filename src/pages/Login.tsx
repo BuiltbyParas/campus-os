@@ -77,7 +77,7 @@ export default function Login() {
           <div className="relative mx-auto w-full max-w-[400px]">
             <Link
               to="/"
-              className="mb-8 inline-flex items-center gap-2 text-[13px] font-medium text-ink-muted transition-colors hover:text-ink"
+              className="tap mb-8 inline-flex items-center gap-2 text-[13px] font-medium text-ink-muted transition-colors hover:text-ink"
             >
               <ArrowLeft className="size-4" />
               Back to home

@@ -8,7 +8,38 @@
       name="description"
       content="CampusOS — one intelligent system for everything students need, from attendance and timetables to campus services and AI-powered assistance."
     />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
+    <link rel="apple-touch-icon" href="%BASE_URL%apple-touch-icon.png" />
+    <link rel="manifest" href="%BASE_URL%manifest.webmanifest" />
+
+    <!-- Installed to a phone home screen, CampusOS should open as an app:
+         no browser chrome, and the status bar painted in the app's own dark
+         canvas rather than white. -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="CampusOS" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- How the link looks when it is shared. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="CampusOS" />
+    <meta property="og:title" content="CampusOS — Your campus. One intelligent system." />
+    <meta
+      property="og:description"
+      content="Attendance, timetable, exams, fees and campus services in one student app, with an assistant that reads your own records. Demonstration build running on demo data."
+    />
+    <meta property="og:url" content="https://builtbyparas.github.io/campus-os/" />
+    <meta property="og:image" content="https://builtbyparas.github.io/campus-os/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="CampusOS — Your campus. One intelligent system." />
+    <meta
+      name="twitter:description"
+      content="One student app for attendance, timetable, exams, fees and campus services. Demonstration build running on demo data."
+    />
+    <meta name="twitter:image" content="https://builtbyparas.github.io/campus-os/og.png" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

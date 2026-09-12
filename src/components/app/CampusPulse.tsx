@@ -65,14 +65,14 @@ export function CampusPulse({ items, className }: { items: PulseItem[]; classNam
                 </span>
                 <Icon className="size-3 shrink-0 text-ink-subtle" aria-hidden />
               </div>
-              <p className="mt-1 truncate text-[14px] font-medium text-ink">{item.title}</p>
-              <p className="mt-0.5 truncate text-[12.5px] text-ink-subtle">{item.detail}</p>
+              <p className="mt-1 line-clamp-2 text-[14px] font-medium text-ink sm:line-clamp-1">{item.title}</p>
+              <p className="mt-0.5 line-clamp-2 text-[12.5px] text-ink-subtle sm:line-clamp-1">{item.detail}</p>
             </div>
 
             {item.action ? (
               <Link
                 to={item.action.to}
-                className="group mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-control border border-line px-2.5 py-1.5 text-[12px] font-medium text-ink-muted transition-colors hover:border-line-strong hover:text-ink"
+                className="group mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-control border border-line px-2.5 py-2.5 text-[12px] font-medium text-ink-muted transition-colors hover:border-line-strong hover:text-ink sm:py-1.5"
               >
                 {item.action.label}
                 <ArrowRight

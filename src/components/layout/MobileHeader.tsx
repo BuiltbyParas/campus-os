@@ -21,7 +21,7 @@ export function MobileHeader({ onOpenCommandPalette }: { onOpenCommandPalette: (
   return (
     <header className="glass-nav sticky top-0 z-40 rounded-none border-x-0 border-t-0 lg:hidden">
       <div className="flex h-14 items-center justify-between gap-3 px-4">
-        <Link to="/app" className="rounded-lg" aria-label="CampusOS dashboard">
+        <Link to="/app" className="-my-2 inline-flex items-center rounded-lg py-2" aria-label="CampusOS dashboard">
           <Logo />
         </Link>
 

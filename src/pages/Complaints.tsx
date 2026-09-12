@@ -65,7 +65,7 @@ function ActiveComplaint({ complaint }: { complaint: Complaint }) {
 
           <Link
             to={`/app/complaints/${complaint.id}`}
-            className="press group inline-flex h-9 shrink-0 items-center gap-1.5 rounded-control border border-line bg-surface px-3 text-[13px] font-medium text-ink hover:border-line-strong"
+            className="press group inline-flex h-11 shrink-0 items-center gap-1.5 rounded-control border border-line bg-surface px-3 text-[13px] font-medium text-ink hover:border-line-strong sm:h-9"
           >
             Track request
             <ArrowRight

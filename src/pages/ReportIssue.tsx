@@ -469,7 +469,7 @@ export default function ReportIssue() {
                   aria-checked={active}
                   onClick={() => setCategory(entry)}
                   className={cn(
-                    'press rounded-full border px-3.5 py-2 text-[13px] font-medium',
+                    'press rounded-full border px-3.5 py-2.5 text-[13px] font-medium sm:py-2',
                     active
                       ? 'border-brand-border/50 bg-brand-soft text-ink'
                       : 'border-line bg-surface-raised text-ink-muted hover:border-line-strong hover:text-ink',

@@ -47,7 +47,7 @@ export function Tabs<T extends string>({
             type="button"
             onClick={() => onChange(option.value)}
             className={cn(
-              'relative flex-1 rounded-full px-3.5 py-2 text-[13px] font-medium transition-colors sm:flex-none',
+              'relative flex-1 rounded-full px-3.5 py-2.5 text-[13px] font-medium transition-colors sm:flex-none sm:py-2',
               active ? 'text-ink' : 'text-ink-muted hover:text-ink',
             )}
           >

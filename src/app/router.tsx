@@ -72,4 +72,9 @@ const routes: RouteObject[] = [
   { path: '*', element: <NotFound /> },
 ]
 
-export const router = createBrowserRouter(routes)
+/* Vite's BASE_URL is '/' in development and '/campus-os/' in the GitHub Pages
+   build. Handing it to the router as the basename is what keeps every `to`
+   in the app written as a plain '/app/…' path in both places. */
+const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/'
+
+export const router = createBrowserRouter(routes, { basename })

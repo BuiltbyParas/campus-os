@@ -35,7 +35,7 @@ export function DemoModeBanner() {
         <button
           type="button"
           onClick={() => setDismissed(true)}
-          className="shrink-0 rounded px-2 py-1 text-[12.5px] font-medium text-ink-subtle transition-colors hover:text-ink"
+          className="tap -my-2 shrink-0 rounded px-2 py-2 text-[12.5px] font-medium text-ink-subtle transition-colors hover:text-ink sm:my-0 sm:py-1"
         >
           Dismiss
         </button>

@@ -143,7 +143,7 @@ export function AttentionStack({
           {lead.action ? (
             <Link
               to={lead.action.to}
-              className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand-ink decoration-brand-ink/50 underline-offset-4 transition-[color,text-decoration-color] duration-150 hover:text-brand hover:underline"
+              className="tap mt-4 inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand-ink decoration-brand-ink/50 underline-offset-4 transition-[color,text-decoration-color] duration-150 hover:text-brand hover:underline"
             >
               {lead.action.label}
               <ArrowRight
@@ -178,7 +178,7 @@ export function AttentionStack({
                     <span className="block text-[10px] font-semibold uppercase tracking-[0.1em] text-ink-subtle">
                       {sourceLabel[signal.source]}
                     </span>
-                    <span className="mt-0.5 block truncate text-[13.5px] font-medium text-ink">
+                    <span className="mt-0.5 block line-clamp-2 text-[13.5px] font-medium text-ink sm:line-clamp-1">
                       {signal.title}
                     </span>
                   </span>

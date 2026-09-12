@@ -78,7 +78,7 @@ export function AttendanceProjection({
               aria-checked={active}
               onClick={() => setCourseId(entry.courseId)}
               className={cn(
-                'relative shrink-0 px-3 pb-2.5 pt-1 text-[12.5px] font-medium transition-colors duration-200',
+                'relative shrink-0 px-3 pb-3 pt-2.5 text-[12.5px] font-medium transition-colors duration-200 sm:pb-2.5 sm:pt-1',
                 active
                   ? 'text-ink'
                   : 'text-ink-subtle hover:bg-surface-raised/60 hover:text-ink',
@@ -106,7 +106,7 @@ export function AttendanceProjection({
             onClick={() => setSkips((value) => Math.max(0, value - 1))}
             disabled={skips === 0}
             aria-label="One fewer class missed"
-            className="grid size-8 place-items-center rounded-md text-ink-muted transition-colors hover:bg-surface hover:text-ink disabled:pointer-events-none disabled:opacity-40"
+            className="grid size-10 place-items-center rounded-md text-ink-muted transition-colors hover:bg-surface hover:text-ink disabled:pointer-events-none disabled:opacity-40 sm:size-8"
           >
             <Minus className="size-4" aria-hidden />
           </button>
@@ -121,7 +121,7 @@ export function AttendanceProjection({
             onClick={() => setSkips((value) => Math.min(MAX_SKIPS, value + 1))}
             disabled={skips === MAX_SKIPS}
             aria-label="One more class missed"
-            className="grid size-8 place-items-center rounded-md text-ink-muted transition-colors hover:bg-surface hover:text-ink disabled:pointer-events-none disabled:opacity-40"
+            className="grid size-10 place-items-center rounded-md text-ink-muted transition-colors hover:bg-surface hover:text-ink disabled:pointer-events-none disabled:opacity-40 sm:size-8"
           >
             <Plus className="size-4" aria-hidden />
           </button>
@@ -195,7 +195,7 @@ export function AttendanceProjection({
         to={`/app/assistant?q=${encodeURIComponent(
           `Can I skip my next ${courseById.get(courseId)?.short ?? ''} class?`,
         )}`}
-        className="mt-4 inline-flex text-[13px] font-medium text-brand-ink transition-colors hover:text-ink"
+        className="tap mt-4 inline-flex text-[13px] font-medium text-brand-ink transition-colors hover:text-ink"
       >
         Ask CampusOS about this
       </Link>

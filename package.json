@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && npm run build:spa-fallback",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:spa-fallback": "node -e \"require('fs').copyFileSync('dist/index.html','dist/404.html')\""
   },
   "dependencies": {
     "@tanstack/react-query": "^5.102.8",

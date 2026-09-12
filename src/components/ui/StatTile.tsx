@@ -56,14 +56,14 @@ export function StatTile({
   const body = (
     <>
       <div className="flex items-start justify-between gap-2">
-        <p className="flex min-w-0 items-center gap-1.5 truncate text-[11.5px] font-medium uppercase tracking-[0.08em] text-ink-subtle">
+        <p className="flex min-w-0 items-start gap-1.5 text-[11.5px] font-medium uppercase leading-[1.35] tracking-[0.08em] text-ink-subtle">
           {Icon ? (
             <Icon
-              className="size-3.5 shrink-0 transition-[color,transform] duration-200 group-hover:scale-110 group-hover:text-brand-ink"
+              className="mt-px size-3.5 shrink-0 transition-[color,transform] duration-200 group-hover:scale-110 group-hover:text-brand-ink"
               aria-hidden
             />
           ) : null}
-          {label}
+          <span className="line-clamp-2 sm:line-clamp-1">{label}</span>
         </p>
         {to ? (
           <ArrowUpRight
@@ -84,7 +84,7 @@ export function StatTile({
       </p>
 
       {detail ? (
-        <p className="mt-1.5 truncate text-[12px] text-ink-muted">{detail}</p>
+        <p className="mt-1.5 line-clamp-2 text-[12px] text-ink-muted sm:line-clamp-1">{detail}</p>
       ) : null}
 
       {visual ? <div className="mt-3">{visual}</div> : null}

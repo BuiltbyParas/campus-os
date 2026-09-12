@@ -66,7 +66,7 @@ export default function Events() {
               aria-pressed={active}
               onClick={() => setFilter(entry.value)}
               className={cn(
-                'press shrink-0 rounded-full border px-3.5 py-2 text-[13px] font-medium transition-colors',
+                'press shrink-0 rounded-full border px-3.5 py-2.5 text-[13px] font-medium transition-colors sm:py-2',
                 active
                   ? 'border-brand-border/50 bg-brand-soft text-ink'
                   : 'border-line bg-surface text-ink-muted hover:border-line-strong hover:text-ink',
@@ -286,7 +286,7 @@ function Rail({
             type="button"
             onClick={() => scrollBy(-1)}
             aria-label="Scroll left"
-            className="press grid size-8 place-items-center rounded-full border border-line bg-surface text-ink-muted hover:border-line-strong hover:text-ink"
+            className="press grid size-10 place-items-center rounded-full border border-line bg-surface text-ink-muted hover:border-line-strong hover:text-ink sm:size-8"
           >
             <ArrowLeft className="size-4" aria-hidden />
           </button>
@@ -294,7 +294,7 @@ function Rail({
             type="button"
             onClick={() => scrollBy(1)}
             aria-label="Scroll right"
-            className="press grid size-8 place-items-center rounded-full border border-line bg-surface text-ink-muted hover:border-line-strong hover:text-ink"
+            className="press grid size-10 place-items-center rounded-full border border-line bg-surface text-ink-muted hover:border-line-strong hover:text-ink sm:size-8"
           >
             <ArrowRight className="size-4" aria-hidden />
           </button>
@@ -342,7 +342,7 @@ function Rail({
                   onClick={() => onToggle(event.id)}
                   aria-pressed={saved}
                   className={cn(
-                    'mt-auto inline-flex h-9 items-center justify-center gap-1.5 rounded-control border text-[12.5px] font-medium transition-colors',
+                    'mt-auto inline-flex h-11 items-center justify-center gap-1.5 rounded-control border text-[12.5px] font-medium transition-colors sm:h-9',
                     'mt-4',
                     saved
                       ? 'border-ok/30 bg-ok-soft text-ok-ink'

@@ -45,7 +45,7 @@ export function SectionTitle({
       {action ? (
         <Link
           to={action.to}
-          className="group inline-flex shrink-0 items-center gap-1 text-[13px] font-medium text-ink-muted transition-colors hover:text-brand-ink"
+          className="tap group inline-flex shrink-0 items-center gap-1 text-[13px] font-medium text-ink-muted transition-colors hover:text-brand-ink"
         >
           {action.label}
           <ArrowUpRight
@@ -294,7 +294,7 @@ export function StatCard({ stat, className }: { stat: Stat; className?: string }
         >
           <stat.icon className="size-[18px]" aria-hidden />
         </span>
-        <p className="truncate text-[11px] font-semibold uppercase tracking-[0.5px] text-ink-subtle">
+        <p className="line-clamp-2 text-right text-[11px] font-semibold uppercase tracking-[0.5px] text-ink-subtle sm:line-clamp-1">
           {stat.label}
         </p>
       </div>
@@ -309,7 +309,7 @@ export function StatCard({ stat, className }: { stat: Stat; className?: string }
         {stat.value}
       </p>
       {stat.detail ? (
-        <p className="mt-2 truncate text-[13px] text-ink-muted">{stat.detail}</p>
+        <p className="mt-2 line-clamp-2 text-[13px] text-ink-muted sm:line-clamp-1">{stat.detail}</p>
       ) : null}
 
       <span
